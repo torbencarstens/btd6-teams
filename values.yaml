@@ -22,3 +22,10 @@ service:
   port: 80
   targetPort: 8000
   appSelector: btd6
+
+ingress:
+  hosts:
+    - btd6.carstens.tech
+  secret: tls-btd6
+  issuer: letsencrypt-issuer
+  name: btd6
