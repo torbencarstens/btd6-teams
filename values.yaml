@@ -1,0 +1,24 @@
+namespace: default
+
+deployment:
+  name: btd6
+  image: ghcr.io/torbencarstens/btd6:__TAG__
+  imagePullPolicy: Always
+  revisionHistoryLimit: 1
+  replicas: 1
+  labels:
+    app: btd6
+  ports:
+    - 8000
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limit:
+    cpu: 300m
+    memory: 300Mi
+
+service:
+  name: btd6
+  port: 80
+  targetPort: 8000
+  appSelector: btd6
