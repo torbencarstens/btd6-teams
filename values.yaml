@@ -20,7 +20,7 @@ deployment:
 service:
   name: btd6
   port: 80
-  targetPort: 8000
+  targetPort: 8080
   appSelector: btd6
 
 ingress:
