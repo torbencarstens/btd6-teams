@@ -2,7 +2,7 @@ namespace: default
 
 deployment:
   name: btd6
-  image: ghcr.io/torbencarstens/btd6:__TAG__
+  image: ghcr.io/torbencarstens/btd6-teams:__TAG__
   imagePullPolicy: Always
   revisionHistoryLimit: 1
   replicas: 1
