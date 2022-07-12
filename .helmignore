@@ -21,3 +21,6 @@
 .idea/
 *.tmproj
 .vscode/
+
+_build
+_opam

@@ -1,5 +1,7 @@
 namespace: default
 
+port: &app_port 3000
+
 deployment:
   name: btd6
   image: ghcr.io/torbencarstens/btd6-teams:__TAG__
@@ -9,7 +11,7 @@ deployment:
   labels:
     app: btd6
   ports:
-    - 8000
+    - *app_port
   requests:
     cpu: 100m
     memory: 100Mi
@@ -20,7 +22,7 @@ deployment:
 service:
   name: btd6
   port: 80
-  targetPort: 8080
+  targetPort: *app_port
   appSelector: btd6
 
 ingress:

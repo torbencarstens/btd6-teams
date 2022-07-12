@@ -1,0 +1,4 @@
+(executable
+ (public_name btd6_teams)
+ (name main)
+ (libraries btd6_teams core opium tyxml lwt.unix))

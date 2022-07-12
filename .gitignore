@@ -5,3 +5,6 @@ __pycache__
 
 venv/
 .venv/
+
+_opam
+_build

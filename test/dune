@@ -1,0 +1,3 @@
+(test
+ (name btd6_teams)
+ (libraries core opium tyxml lwt.unix))
