@@ -41,7 +41,6 @@ let comp_towers (t1: tower) (t2: tower) =
     compare (tower_type_to_int (t1._type)) (tower_type_to_int (t2._type))
 
 let rec get_random_towers _towers =
-  let () = print_int (List.length _towers) in
   if List.length _towers >= 3 then _towers
   else
     let random_tower = List.nth towers (Random.int (List.length towers)) in
