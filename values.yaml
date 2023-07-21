@@ -1,0 +1,33 @@
+namespace: default
+
+port: &app_port 4173
+
+deployment:
+  name: btd6
+  image: ghcr.io/torbencarstens/btd6-teams:__TAG__
+  imagePullPolicy: Always
+  revisionHistoryLimit: 1
+  replicas: 1
+  labels:
+    app: btd6
+  ports:
+    - *app_port
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limit:
+    cpu: 300m
+    memory: 300Mi
+
+service:
+  name: btd6
+  port: 80
+  targetPort: *app_port
+  appSelector: btd6
+
+ingress:
+  hosts:
+    - btd6.carstens.tech
+  secret: tls-btd6
+  issuer: letsencrypt-issuer
+  name: btd6
