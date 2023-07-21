@@ -2,7 +2,6 @@ FROM ocaml/opam:alpine as builder
 
 WORKDIR btd6_teams
 
-# Install dependencies
 ADD btd6_teams.opam .
 RUN opam pin add -yn btd6_teams . && \
     opam depext btd6_teams && \
@@ -23,15 +22,12 @@ RUN eval $(opam env) && \
     dune build && \
     opam depext -ln btd6_teams | egrep -o "\-\s.*" | sed "s/- //" > depexts
     
-# Let's create the production image!
 FROM alpine
 WORKDIR /app
 COPY --from=builder /home/opam/btd6_teams/_build/default/bin/main.exe btd6_teams.exe
 
 RUN apk update && apk add --no-cache libev
 
-# Don't forget to install the dependencies, noted from
-# the previous build.
 COPY --from=builder /home/opam/btd6_teams/depexts depexts
 RUN cat depexts | xargs apk --update add && rm -rf /var/cache/apk/*
 
