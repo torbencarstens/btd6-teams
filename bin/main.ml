@@ -31,15 +31,8 @@ let towers : tower list =
     { name = "Beast Handler"; _type = SUPPORT; ordering = 22 };
   ]
 
-let tower_type_to_int _type =
-    match _type with
-    | PRIMARY -> 0
-    | MILITARY -> 1
-    | MAGIC -> 2
-    | SUPPORT -> 3
-
 let comp_towers (t1: tower) (t2: tower) =
-    compare (tower_type_to_int (t1._type)) (tower_type_to_int (t2._type))
+    compare t1.ordering t2.ordering
 
 let rec get_random_towers _towers =
   if List.length _towers >= 3 then _towers
