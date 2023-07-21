@@ -2,7 +2,7 @@ open Opium
 
 type tower_type = PRIMARY | MILITARY | MAGIC | SUPPORT
 
-type tower = { name : string; _type : tower_type, ordering : int }
+type tower = { name : string; _type : tower_type; ordering : int }
 
 let towers : tower list =
   [
