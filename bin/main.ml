@@ -2,32 +2,32 @@ open Opium
 
 type tower_type = PRIMARY | MILITARY | MAGIC | SUPPORT
 
-type tower = { name : string; _type : tower_type }
+type tower = { name : string; _type : tower_type, ordering : int }
 
 let towers : tower list =
   [
-    { name = "Dart Monkey"; _type = PRIMARY };
-    { name = "Boomerang Monkey"; _type = PRIMARY };
-    { name = "Bomb Shooter"; _type = PRIMARY };
-    { name = "Tack Shooter"; _type = PRIMARY };
-    { name = "Ice Monkey"; _type = PRIMARY };
-    { name = "Glue Gunner"; _type = PRIMARY };
-    { name = "Sniper Monkey"; _type = MILITARY };
-    { name = "Monkey Sub"; _type = MILITARY };
-    { name = "Monkey Buccaneer"; _type = MILITARY };
-    { name = "Monkey Ace"; _type = MILITARY };
-    { name = "Heli Pilot"; _type = MILITARY };
-    { name = "Mortar Monkey"; _type = MILITARY };
-    { name = "Dartling Gunner"; _type = MILITARY };
-    { name = "Wizard Monkey"; _type = MAGIC };
-    { name = "Super Monkey"; _type = MAGIC };
-    { name = "Ninja Monkey"; _type = MAGIC };
-    { name = "Alchemist"; _type = MAGIC };
-    { name = "Druid"; _type = MAGIC };
-    { name = "Banana Farm"; _type = SUPPORT };
-    { name = "Spike Factory"; _type = SUPPORT };
-    { name = "Monkey Village"; _type = SUPPORT };
-    { name = "Engineer Monkey"; _type = SUPPORT };
+    { name = "Dart Monkey"; _type = PRIMARY; ordering = 0 };
+    { name = "Boomerang Monkey"; _type = PRIMARY; ordering = 1 };
+    { name = "Bomb Shooter"; _type = PRIMARY; ordering = 2 };
+    { name = "Tack Shooter"; _type = PRIMARY; ordering = 3 };
+    { name = "Ice Monkey"; _type = PRIMARY; ordering = 4 };
+    { name = "Glue Gunner"; _type = PRIMARY; ordering = 5 };
+    { name = "Sniper Monkey"; _type = MILITARY; ordering = 6 };
+    { name = "Monkey Sub"; _type = MILITARY; ordering = 7 };
+    { name = "Monkey Buccaneer"; _type = MILITARY; ordering = 8 };
+    { name = "Monkey Ace"; _type = MILITARY; ordering = 9 };
+    { name = "Heli Pilot"; _type = MILITARY; ordering = 10 };
+    { name = "Mortar Monkey"; _type = MILITARY; ordering = 11 };
+    { name = "Dartling Gunner"; _type = MILITARY; ordering = 12 };
+    { name = "Wizard Monkey"; _type = MAGIC; ordering = 13 };
+    { name = "Super Monkey"; _type = MAGIC; ordering = 14 };
+    { name = "Ninja Monkey"; _type = MAGIC; ordering = 15 };
+    { name = "Alchemist"; _type = MAGIC; ordering = 16 };
+    { name = "Druid"; _type = MAGIC; ordering = 17 };
+    { name = "Banana Farm"; _type = SUPPORT; ordering = 18 };
+    { name = "Spike Factory"; _type = SUPPORT; ordering = 19 };
+    { name = "Monkey Village"; _type = SUPPORT; ordering = 20 };
+    { name = "Engineer Monkey"; _type = SUPPORT; ordering = 21 };
   ]
 
 let tower_type_to_int _type =
