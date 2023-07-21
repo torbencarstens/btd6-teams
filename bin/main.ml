@@ -28,6 +28,7 @@ let towers : tower list =
     { name = "Spike Factory"; _type = SUPPORT; ordering = 19 };
     { name = "Monkey Village"; _type = SUPPORT; ordering = 20 };
     { name = "Engineer Monkey"; _type = SUPPORT; ordering = 21 };
+    { name = "Beast Handler"; _type = SUPPORT; ordering = 22 };
   ]
 
 let tower_type_to_int _type =
