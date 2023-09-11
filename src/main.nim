@@ -49,7 +49,7 @@ proc displayTower(t: Tower): string =
 proc displayTowers(towers: seq[Tower]): string =
   var html = ""
   for tower in towers:
-    html = html & displayTower(tower)
+    html.add displayTower(tower)
 
   html
 
@@ -60,6 +60,8 @@ router btd6teams:
     let count = parseInt(@"count")
     if count > TOWER_COUNT:
       resp Http400, [("Content-Type", "text/plain")], fmt"there are only {TOWER_COUNT} towers"
+    elif count < 1:
+      resp Http400, [("Content-Type", "text/plain")], fmt"what do you need <1 towers for you buffon"
 
     let randomTowers = getRandomTowers(count)
     let sortedTowers = sorted(randomTowers, compareTowers)

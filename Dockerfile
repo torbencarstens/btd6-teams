@@ -16,7 +16,7 @@ COPY btd6teams.nimble btd6teams.nimble
 
 RUN nimble refresh && nimble install
 
-COPY src/main.nim main.nim
+COPY src/*.nim .
 
 RUN nimble c --mm:refc -d:release main.nim
 
