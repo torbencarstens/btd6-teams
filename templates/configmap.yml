@@ -4,4 +4,4 @@ metadata:
   name: {{ .Values.configmap.name }}
   namespace: {{ .Values.namespace }}
 data:
-  PORT: {{ .Values.configmap.port }}
+  PORT: "{{ .Values.configmap.port }}"
