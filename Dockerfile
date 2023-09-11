@@ -18,7 +18,7 @@ RUN nimble refresh && nimble install
 
 COPY src/main.nim main.nim
 
-RUN nimble c -d:release main.nim
+RUN nimble c --mm:refc -d:release main.nim
 
 USER nim
 
