@@ -1,0 +1,53 @@
+import models
+
+const TOWER_COUNT* = 22
+const TOWERS*: array[0..TOWER_COUNT - 1, Tower] = [
+  Tower(name: "Dart Monkey", ttype: TowerType.PRIMARY),
+  Tower(name: "Boomerang Monkey", ttype: TowerType.PRIMARY),
+  Tower(name: "Bomb Shooter", ttype: TowerType.PRIMARY),
+  Tower(name: "Tack Shooter", ttype: TowerType.PRIMARY),
+  Tower(name: "Ice Monkey", ttype: TowerType.PRIMARY),
+  Tower(name: "Glue Gunner", ttype: TowerType.PRIMARY),
+  Tower(name: "Sniper Monkey", ttype: TowerType.MILITARY),
+  Tower(name: "Monkey Sub", ttype: TowerType.MILITARY),
+  Tower(name: "Monkey Buccaneer", ttype: TowerType.MILITARY),
+  Tower(name: "Monkey Ace", ttype: TowerType.MILITARY),
+  Tower(name: "Heli Pilot", ttype: TowerType.MILITARY),
+  Tower(name: "Mortar Monkey", ttype: TowerType.MILITARY),
+  Tower(name: "Dartling Gunner", ttype: TowerType.MILITARY),
+  Tower(name: "Wizard Monkey", ttype: TowerType.MAGIC),
+  Tower(name: "Super Monkey", ttype: TowerType.MAGIC),
+  Tower(name: "Ninja Monkey", ttype: TowerType.MAGIC),
+  Tower(name: "Alchemist", ttype: TowerType.MAGIC),
+  Tower(name: "Druid", ttype: TowerType.MAGIC),
+  Tower(name: "Banana Farm", ttype: TowerType.SUPPORT),
+  Tower(name: "Spike Factory", ttype: TowerType.SUPPORT),
+  Tower(name: "Monkey Village", ttype: TowerType.SUPPORT),
+  Tower(name: "Engineer Monkey", ttype: TowerType.SUPPORT),
+]
+
+const MAP_COUNT* = 22
+const MAPS*: array[0..MAP_COUNT - 1, Map] = [
+  Map(name: "Monkey Meadow", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Tree Stump", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Town Center", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Middle of the Road", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "One Two Tree", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Scrapyard", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "The Cabin", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Resort", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Skates", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Lotus Island", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Candy Falls", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Winter Park", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Carved", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Park Path", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Alpine Run", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Frozen Over", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "In The Loop", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Cubism", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Four Circles", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Hedge", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "End of the Road", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Logs", difficulty: MapDifficulty.BEGINNER),
+]
