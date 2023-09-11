@@ -1,0 +1,7 @@
+apiVersion: v2
+name: btd6
+description: Deploy btd6-teams (https://github.com/torbencarstens/btd6-teams)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+icon: https://carstens.tech/helm_icon.png
