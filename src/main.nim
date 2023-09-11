@@ -37,11 +37,43 @@ const towers: array[0..TOWER_COUNT - 1, Tower] = [
   Tower(name: "Engineer Monkey", ttype: TowerType.SUPPORT),
 ]
 
+const MAP_COUNT = 22
+const maps: array[0..MAP_COUNT - 1, Map] = [
+  Map(name: "Monkey Meadow", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Tree Stump", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Town Center", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Middle of the Road", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "One Two Tree", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Scrapyard", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "The Cabin", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Resort", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Skates", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Lotus Island", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Candy Falls", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Winter Park", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Carved", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Park Path", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Alpine Run", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Frozen Over", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "In The Loop", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Cubism", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Four Circles", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Hedge", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "End of the Road", difficulty: MapDifficulty.BEGINNER),
+  Map(name: "Logs", difficulty: MapDifficulty.BEGINNER),
+]
+
 proc getRandomTowers(count: int): seq[Tower] =
   var samples = towers
   shuffle(samples)
 
   samples[0..count - 1]
+
+proc randomMap(): Map =
+  sample(maps)
+
+proc displayMap(m: Map): string =
+  `div`(fmt"{m.name} ({m.difficulty})")
 
 proc displayTower(t: Tower): string =
   `div`(t.name)
@@ -71,10 +103,13 @@ router btd6teams:
           meta(charset="utf-8"),
           title(fmt"btd6 team"),
           link(rel="icon", `type`="image/png", href="data:image/png;base64,iVBORw0KGgo="),
-          style("html { background-color: #222; color: #ddd; }"),
+          style("html { background-color: #222; color: #ddd; } #map-title { margin-top: 10px; }"),
         ),
         body(
+          `div`("Towers:"),
           displayTowers(sortedTowers),
+          `div`("Map:", id="map-title"),
+          displayMap(randomMap())
         )
       )
     resp content
