@@ -90,6 +90,7 @@ router btd6teams:
         head(
           meta(charset="utf-8"),
           title(fmt"btd6 team"),
+          link(rel="icon", `type`="image/png", href="data:image/png;base64,iVBORw0KGgo="),
           style("html { background-color: #222; color: #ddd; }"),
         ),
         body(
