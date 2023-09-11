@@ -22,16 +22,17 @@ proc randomMap(): Map =
   sample(MAPS)
 
 proc displayMap(m: Map): string =
-  `div`(fmt"{m.name} ({m.difficulty})")
+  `div`(fmt"{m.name} ({m.difficulty})", id="map-name")
 
 proc displayTower(t: Tower): string =
-  `div`(t.name)
+  `li`(t.name)
 
 proc displayTowers(towers: seq[Tower]): string =
-  var html = ""
+  var html = "<ul>"
   for tower in towers:
     html.add displayTower(tower)
 
+  html.add "</ul>"
   html
 
 router btd6teams:
@@ -52,7 +53,11 @@ router btd6teams:
           meta(charset="utf-8"),
           title(fmt"btd6 team"),
           link(rel="icon", `type`="image/png", href="data:image/png;base64,iVBORw0KGgo="),
-          style("html { background-color: #222; color: #ddd; } #map-title { margin-top: 10px; }"),
+          style("""html { background-color: #222; color: #ddd; }
+                   #map-title { margin-top: 10px; }
+                   #map-name { margin-left: 10px; }
+                   ul { list-style: none; padding: 0; margin-left: 10px; margin-top: 0; }
+          """),
         ),
         body(
           `div`("Towers:"),
