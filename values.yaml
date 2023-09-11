@@ -13,11 +13,11 @@ deployment:
   ports:
     - *app_port
   requests:
-    cpu: 100m
-    memory: 100Mi
+    cpu: 10m
+    memory: 10Mi
   limit:
-    cpu: 300m
-    memory: 300Mi
+    cpu: 100m
+    memory: 20Mi
 
 service:
   name: btd6
