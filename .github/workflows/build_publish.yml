@@ -3,23 +3,23 @@ name: Build/Publish docker image
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   lint:
     name: "helm lint"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: sed -i -e "s#__TAG__#${GITHUB_SHA}#g" values.yaml
-      - uses: WyriHaximus/github-action-helm3@v2
+      - uses: BlindfoldedSurgery/github-action-helm@v0.3.0
         with:
-          exec: helm lint --strict
+          raw_command: lint --strict
 
   build_push_docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -36,11 +36,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_push_docker
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: update tag in manifest.yml
         run: sed -i -e "s#__TAG__#${GITHUB_SHA}#g" values.yaml
       - name: install helm chart
-        uses: WyriHaximus/github-action-helm3@v2
+        uses: BlindfoldedSurgery/github-action-helm@v0.3.0
         with:
-          exec: helm upgrade btd6 . --install --namespace=default --atomic
+          subcommand: upgrade
+          release_name: btd6
+          ref: .
+          namespace: btd6teams
+          install: true
+          atomic: true
           kubeconfig: ${{ secrets.KUBECONFIG_RAW }}
