@@ -60,9 +60,9 @@ router btd6teams:
           """),
         ),
         body(
-          `div`("Towers:"),
+          `div`("Towers"),
           displayTowers(sortedTowers),
-          `div`("Map:", id="map-title"),
+          `div`("Map", id="map-title"),
           displayMap(randomMap())
         )
       )
