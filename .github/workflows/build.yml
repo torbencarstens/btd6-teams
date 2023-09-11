@@ -3,7 +3,7 @@ name: Build/Publish docker image
 on:
   push:
     branches:
-      - '!master'
+      - '!main'
 
 jobs:
   lint:
@@ -12,9 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sed -i -e "s#__TAG__#${GITHUB_SHA}#g" values.yaml
-      - uses: WyriHaximus/github-action-helm3@v2
+      - uses: BlindfoldedSurgery/github-action-helm@v0.3.0
         with:
-          exec: helm lint --strict
+          raw_command: lint --strict
 
   build_push_docker:
     runs-on: ubuntu-latest
