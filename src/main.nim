@@ -1,5 +1,5 @@
 import jester
-import std/[enumutils, htmlgen, httpclient, random, segfaults, strformat, strutils, times]
+import std/[algorithm, enumutils, htmlgen, httpclient, random, segfaults, strformat, strutils, times]
 
 randomize(cpuTime().int)
 
@@ -22,13 +22,16 @@ type
     MAGIC = "Magic",
     SUPPORT = "Support",
 
-proc compareTowerType(t1: TowerType, t2: TowerType): int =
-  system.cmp(t1.symbolRank, t2.symbolRank)
-
 type
   Tower = object
     name: string
     ttype: TowerType
+
+proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
+  system.cmp(t1.symbolRank, t2.symbolRank)
+
+proc compareTowers(t1: Tower, t2: Tower): int =
+  compareTowerTypes(t1.ttype, t2.ttype)
 
 
 const towers: array[0..21, Tower] = [
@@ -75,6 +78,7 @@ proc displayTowers(towers: seq[Tower]): string =
 router btd6teams:
   get "/":
     let randomTowers = getRandomTowers(3)
+    let sortedTowers = sorted(randomTowers, compareTowers)
 
     let content = "<!DOCTYPE html>" & html(
         head(
@@ -83,7 +87,7 @@ router btd6teams:
           style("html { background-color: #222; color: #ddd; }"),
         ),
         body(
-          displayTowers(randomTowers),
+          displayTowers(sortedTowers),
         )
       )
     resp content
