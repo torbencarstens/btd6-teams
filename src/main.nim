@@ -1,6 +1,6 @@
 import jester
 import models
-import std/[algorithm, enumutils, htmlgen, httpclient, random, segfaults, strformat, strutils, times]
+import std/[algorithm, enumutils, htmlgen, httpclient, random, strformat, strutils, times]
 
 randomize(cpuTime().int)
 
