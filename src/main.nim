@@ -5,6 +5,7 @@ import std/[algorithm, enumutils, htmlgen, httpclient, random, segfaults, strfor
 randomize(cpuTime().int)
 
 proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
+  # `symbolRank` is defined in `std/enumutils`: "Returns the index in which a is listed in T."
   system.cmp(t1.symbolRank, t2.symbolRank)
 
 proc compareTowers(t1: Tower, t2: Tower): int =
