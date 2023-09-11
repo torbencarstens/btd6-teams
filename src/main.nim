@@ -33,8 +33,8 @@ proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
 proc compareTowers(t1: Tower, t2: Tower): int =
   compareTowerTypes(t1.ttype, t2.ttype)
 
-
-const towers: array[0..21, Tower] = [
+const TOWER_COUNT = 22
+const towers: array[0..TOWER_COUNT - 1, Tower] = [
   Tower(name: "Dart Monkey", ttype: TowerType.PRIMARY),
   Tower(name: "Boomerang Monkey", ttype: TowerType.PRIMARY),
   Tower(name: "Bomb Shooter", ttype: TowerType.PRIMARY),
@@ -77,7 +77,13 @@ proc displayTowers(towers: seq[Tower]): string =
 
 router btd6teams:
   get "/":
-    let randomTowers = getRandomTowers(3)
+    redirect("/3")
+  get "/@count":
+    let count = parseInt(@"count")
+    if count > TOWER_COUNT:
+      resp Http400, [("Content-Type", "text/plain")], fmt"there are only {TOWER_COUNT} towers"
+
+    let randomTowers = getRandomTowers(count)
     let sortedTowers = sorted(randomTowers, compareTowers)
 
     let content = "<!DOCTYPE html>" & html(
