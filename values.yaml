@@ -1,4 +1,4 @@
-namespace: default
+namespace: btd6teams
 
 port: &app_port 4173
 
