@@ -83,7 +83,6 @@ router btd6teams:
           style("html { background-color: #222; color: #ddd; }"),
         ),
         body(
-          h1(),
           displayTowers(randomTowers),
         )
       )
