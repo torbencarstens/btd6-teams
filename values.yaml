@@ -31,3 +31,7 @@ ingress:
   secret: tls-btd6
   issuer: letsencrypt-issuer
   name: btd6
+
+configmap:
+  name: btd6teams
+  port: *app_port
