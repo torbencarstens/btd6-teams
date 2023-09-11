@@ -1,8 +1,5 @@
 FROM nimlang/nim:2.0.0-regular
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq-dev netcat-openbsd
-
 WORKDIR /usr/src/app
 
 RUN addgroup --system nim && adduser --system --group nim
