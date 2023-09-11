@@ -1,7 +1,7 @@
 import definitions
 import jester
 import models
-import std/[algorithm, enumutils, htmlgen, httpclient, random, strformat, strutils, times]
+import std/[algorithm, enumutils, envvars, htmlgen, httpclient, random, strformat, strutils, times]
 
 randomize(cpuTime().int)
 
@@ -69,7 +69,7 @@ router btd6teams:
     resp content
 
 proc main() =
-  let port = Port(8080)
+  let port = Port(parseInt(getEnv("PORT", "8080")))
   let settings = newSettings(port=port)
   var jester = initJester(btd6teams, settings=settings)
   jester.serve()
