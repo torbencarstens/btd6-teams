@@ -70,6 +70,51 @@ proc displayHero(hero: Hero): string =
 
   `div`(heroName, id="hero-name")
 
+proc displayMapDifficultySelect(difficulty: string): string =
+  var html = "<select name='difficulty'>"
+  for ev in MapDifficulty.toSeq:
+    if ev.symbolName.toLowerAscii() == difficulty.toLowerAscii():
+      html.add option(ev.symbolName, value=ev.symbolName, selected="true")
+    else:
+      html.add option(ev.symbolName, value=ev.symbolName)
+
+  html & "</select>"
+
+proc displayModeSelect(modeStr: string): string =
+  var html = "<select name='mode'>"
+  for mode in MODES:
+    let name = mode.name.replace(" ", "_")
+    let modeFormat = fmt"{mode.difficulty}-{name}".toLowerAscii()
+    if modeStr.toLowerAscii() == modeFormat:
+      html.add option(fmt"{mode.name} ({mode.difficulty})", value=modeFormat, selected="true")
+    else:
+      html.add option(fmt"{mode.name} ({mode.difficulty})", value=modeFormat)
+
+  if modeStr == "":
+    html.add option("Any", value="", selected="true")
+  else:
+    html.add option("Any", value="")
+  html & "</select>"
+
+proc displayCountSelect(count: int): string =
+  var html = "<label for='count'>Tower count</count><select name='count'>"
+  for i in 1..22:
+    let number = fmt"{i}"
+    if i == count:
+      html.add option(number, value=number, selected="true")
+    else:
+      html.add option(number, value=number)
+
+  html & "</select>"
+
+proc displayForm(count: int, difficulty: string, mode: string): string =
+  form(
+    displayMapDifficultySelect(difficulty),
+    displayModeSelect(mode),
+    displayCountSelect(count),
+    button("Filter", `type`="submit")
+  )
+
 router btd6teams:
   get "/":
     let countParam = params(request).getOrDefault("count", "3")
@@ -101,6 +146,8 @@ router btd6teams:
                    #map-title, #hero-title { margin-top: 10px; }
                    #map-name, #hero-name, #map-mode { margin-left: 10px; }
                    ul { list-style: none; padding: 0; margin-left: 10px; margin-top: 0; }
+                   form { margin-top: 10px; }
+                   select, button { display: block; margin-bottom: 5px; }
           """),
         ),
         body(
@@ -109,7 +156,9 @@ router btd6teams:
           `div`("Hero", id="hero-title"),
           displayHero(randomHero()),
           `div`("Map", id="map-title"),
-          displayMap(randomMap(mapDifficulty.get()), mode.get())
+          displayMap(randomMap(mapDifficulty.get()), mode.get()),
+          hr(),
+          displayForm(count, difficultyParam, modeParam),
         )
       )
     resp content
