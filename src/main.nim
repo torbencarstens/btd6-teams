@@ -115,6 +115,15 @@ proc displayForm(count: int, difficulty: string, mode: string): string =
     button("Filter", `type`="submit")
   )
 
+proc css(selectors: openArray[string], properties: openArray[(string, string)]): string =
+  var css = selectors.join(",") & " {\n"
+
+  for property in properties:
+    css.add fmt"  {property[0]}: {property[1]};" & "\n"
+
+  css & "}\n"
+
+
 router btd6teams:
   get "/":
     let countParam = params(request).getOrDefault("count", "3")
@@ -142,13 +151,13 @@ router btd6teams:
           meta(charset="utf-8"),
           title(fmt"btd6 team"),
           link(rel="icon", `type`="image/png", href="data:image/png;base64,iVBORw0KGgo="),
-          style("""html { background-color: #222; color: #ddd; }
-                   #map-title, #hero-title { margin-top: 10px; }
-                   #map-name, #hero-name, #map-mode { margin-left: 10px; }
-                   ul { list-style: none; padding: 0; margin-left: 10px; margin-top: 0; }
-                   form { margin-top: 10px; }
-                   select, button { display: block; margin-bottom: 5px; }
-          """),
+          style(
+            css(["html"], [("background-color", "#222"), ("color", "#ddd")]),
+            css(["#map-title", "#hero-title"], [("margin-top", "10px")]),
+            css(["ul"], [("list-style", "none"), ("padding", "0"), ("margin-left", "10px"), ("margin-top", "0")]),
+            css(["form"], [("margin-top", "10px")]),
+            css(["select", "button"], [("display", "block"), ("margin-bottom", "5px")]),
+          )
         ),
         body(
           `div`("Towers"),
