@@ -1,9 +1,9 @@
 type
   MapDifficulty* = enum
-    BEGINNER = "Beginner",
-    INTERMEDIATE = "Intermediate",
-    ADVANCED = "Advanced",
-    EXPERT = "Expert",
+    BEGINNER = "Beginner"
+    INTERMEDIATE = "Intermediate"
+    ADVANCED = "Advanced"
+    EXPERT = "Expert"
     ANY
 
 type
@@ -25,17 +25,28 @@ type
 
 type
   Hero* = enum
-    Quincy,
-    Gwendolin,
-    Striker_Jones,
-    Obyn_Greenfoot,
-    Captain_Churchill,
-    Benjamin,
-    Ezili,
-    Pat_Fusty,
-    Adora,
-    Admiral_Brickell,
-    Etienne,
-    Sauda,
-    Psi,
+    Quincy
+    Gwendolin
+    Striker_Jones
+    Obyn_Greenfoot
+    Captain_Churchill
+    Benjamin
+    Ezili
+    Pat_Fusty
+    Adora
+    Admiral_Brickell
+    Etienne
+    Sauda
+    Psi
     Geraldo
+
+type
+  ModeDifficulty* = enum
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
+
+type
+  Mode* = object
+    name*: string
+    difficulty*: ModeDifficulty

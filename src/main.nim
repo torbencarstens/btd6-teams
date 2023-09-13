@@ -13,6 +13,18 @@ proc mapDifficultyFromString*(value: string): Option[MapDifficulty] =
 
   return none(MapDifficulty)
 
+proc modeFromString(value: string): Option[Mode] =
+  if value == "":
+    return some(sample(MODES))
+
+  for mode in MODES:
+    let name = mode.name.replace(" ", "_")
+    let modeFormat = fmt"{mode.difficulty}-{name}".toLowerAscii()
+    if modeFormat == value.toLowerAscii():
+      return some(mode)
+
+  return none(Mode)
+
 proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
   # `symbolRank` is defined in `std/enumutils`: "Returns the index in which a is listed in T."
   system.cmp(t1.symbolRank, t2.symbolRank)
@@ -33,8 +45,11 @@ proc randomMap(difficulty: MapDifficulty): Map =
   else:
     sample(MAPS)
 
-proc displayMap(m: Map): string =
-  `div`(fmt"{m.name} ({m.difficulty})", id="map-name")
+proc displayMap(m: Map, mode: Mode): string =
+  `div`(
+    `div`(fmt"{m.name} ({m.difficulty})", id="map-name"),
+    `div`(fmt"{mode.name} ({mode.difficulty})", id="map-mode"),
+  )
 
 proc displayTower(t: Tower): string =
   `li`(t.name)
@@ -60,11 +75,14 @@ router btd6teams:
     let countParam = params(request).getOrDefault("count", "3")
     let count = parseInt(countParam);
     let difficultyParam = params(request).getOrDefault("difficulty", "ANY").toUpperAscii()
+    let modeParam = params(request).getOrDefault("mode", "").toUpperAscii()
 
     let mapDifficulty = mapDifficultyFromString(difficultyParam)
+    let mode = modeFromString(modeParam)
     if mapDifficulty.isNone():
-      # resp Http400, [{"Content-Type": "text/plain"}], fmt"Unknown map difficulty {mapDifficultyParam}"
-      resp Http400, [("Content-Type", "text/plain")], fmt"there are only {TOWER_COUNT} towers"
+      resp Http400, [("Content-Type", "text/plain")], fmt"there is no `{difficultyParam}` difficulty"
+    if mode.isNone():
+      resp Http400, [("Content-Type", "text/plain")], fmt"there is no `{modeParam}` mode"
 
     if count > TOWER_COUNT:
       resp Http400, [("Content-Type", "text/plain")], fmt"there are only {TOWER_COUNT} towers"
@@ -81,7 +99,7 @@ router btd6teams:
           link(rel="icon", `type`="image/png", href="data:image/png;base64,iVBORw0KGgo="),
           style("""html { background-color: #222; color: #ddd; }
                    #map-title, #hero-title { margin-top: 10px; }
-                   #map-name, #hero-name { margin-left: 10px; }
+                   #map-name, #hero-name, #map-mode { margin-left: 10px; }
                    ul { list-style: none; padding: 0; margin-left: 10px; margin-top: 0; }
           """),
         ),
@@ -91,7 +109,7 @@ router btd6teams:
           `div`("Hero", id="hero-title"),
           displayHero(randomHero()),
           `div`("Map", id="map-title"),
-          displayMap(randomMap(mapDifficulty.get()))
+          displayMap(randomMap(mapDifficulty.get()), mode.get())
         )
       )
     resp content

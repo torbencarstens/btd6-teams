@@ -26,6 +26,24 @@ const TOWERS*: array[0..TOWER_COUNT - 1, Tower] = [
   Tower(name: "Engineer Monkey", ttype: TowerType.SUPPORT),
 ]
 
+const MODE_COUNT* = 14
+const MODES*: array[0..MODE_COUNT - 1, Mode] = [
+  Mode(name: "Standard", difficulty: ModeDifficulty.EASY),
+  Mode(name: "Primary only", difficulty: ModeDifficulty.EASY),
+  Mode(name: "Deflation", difficulty: ModeDifficulty.EASY),
+  Mode(name: "Standard", difficulty: ModeDifficulty.MEDIUM),
+  Mode(name: "Military only", difficulty: ModeDifficulty.MEDIUM),
+  Mode(name: "Apopalypse", difficulty: ModeDifficulty.MEDIUM),
+  Mode(name: "Reverse", difficulty: ModeDifficulty.MEDIUM),
+  Mode(name: "Standard", difficulty: ModeDifficulty.HARD),
+  Mode(name: "Magic Monkeys only", difficulty: ModeDifficulty.HARD),
+  Mode(name: "Double HP Moabs", difficulty: ModeDifficulty.HARD),
+  Mode(name: "Half Cash", difficulty: ModeDifficulty.HARD),
+  Mode(name: "Alternate Bloons Rounds", difficulty: ModeDifficulty.HARD),
+  Mode(name: "Impoppable", difficulty: ModeDifficulty.HARD),
+  Mode(name: "Chimps", difficulty: ModeDifficulty.HARD),
+]
+
 const MAP_COUNT* = 69
 const MAPS*: array[0..MAP_COUNT - 1, Map] = [
   Map(name: "Monkey Meadow", difficulty: MapDifficulty.BEGINNER),
