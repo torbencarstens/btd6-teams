@@ -1,10 +1,17 @@
 import definitions
 import jester
 import models
-import std/[algorithm, enumutils, envvars, htmlgen, httpclient, random, strformat, strutils, times]
-from std/sequtils import toSeq
+import std/[algorithm, enumutils, envvars, htmlgen, httpclient, options, random, strformat, strutils, times]
+from std/sequtils import filter, toSeq
 
 randomize(now().second)
+
+proc mapDifficultyFromString*(value: string): Option[MapDifficulty] =
+  for ev in MapDifficulty.toSeq:
+    if ev.symbolName == value:
+      return some(ev)
+
+  return none(MapDifficulty)
 
 proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
   # `symbolRank` is defined in `std/enumutils`: "Returns the index in which a is listed in T."
@@ -19,8 +26,12 @@ proc getRandomTowers(count: int): seq[Tower] =
 
   samples[0..count - 1]
 
-proc randomMap(): Map =
-  sample(MAPS)
+proc randomMap(difficulty: MapDifficulty): Map =
+  if difficulty != MapDifficulty.ANY:
+    let maps = filter(MAPS, proc(d: Map): bool = d.difficulty == difficulty)
+    sample(maps)
+  else:
+    sample(MAPS)
 
 proc displayMap(m: Map): string =
   `div`(fmt"{m.name} ({m.difficulty})", id="map-name")
@@ -46,9 +57,15 @@ proc displayHero(hero: Hero): string =
 
 router btd6teams:
   get "/":
-    redirect("/3")
-  get "/@count":
-    let count = parseInt(@"count")
+    let countParam = params(request).getOrDefault("count", "3")
+    let count = parseInt(countParam);
+    let difficultyParam = params(request).getOrDefault("difficulty", "ANY").toUpperAscii()
+
+    let mapDifficulty = mapDifficultyFromString(difficultyParam)
+    if mapDifficulty.isNone():
+      # resp Http400, [{"Content-Type": "text/plain"}], fmt"Unknown map difficulty {mapDifficultyParam}"
+      resp Http400, [("Content-Type", "text/plain")], fmt"there are only {TOWER_COUNT} towers"
+
     if count > TOWER_COUNT:
       resp Http400, [("Content-Type", "text/plain")], fmt"there are only {TOWER_COUNT} towers"
     elif count < 1:
@@ -74,7 +91,7 @@ router btd6teams:
           `div`("Hero", id="hero-title"),
           displayHero(randomHero()),
           `div`("Map", id="map-title"),
-          displayMap(randomMap())
+          displayMap(randomMap(mapDifficulty.get()))
         )
       )
     resp content

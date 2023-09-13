@@ -4,6 +4,7 @@ type
     INTERMEDIATE = "Intermediate",
     ADVANCED = "Advanced",
     EXPERT = "Expert",
+    ANY
 
 type
   Map* = object
