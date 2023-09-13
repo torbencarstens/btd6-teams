@@ -21,3 +21,20 @@ type
   Tower* = object
     name*: string
     ttype*: TowerType
+
+type
+  Hero* = enum
+    Quincy,
+    Gwendolin,
+    Striker_Jones,
+    Obyn_Greenfoot,
+    Captain_Churchill,
+    Benjamin,
+    Ezili,
+    Pat_Fusty,
+    Adora,
+    Admiral_Brickell,
+    Etienne,
+    Sauda,
+    Psi,
+    Geraldo

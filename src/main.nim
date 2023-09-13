@@ -2,6 +2,7 @@ import definitions
 import jester
 import models
 import std/[algorithm, enumutils, envvars, htmlgen, httpclient, random, strformat, strutils, times]
+from std/sequtils import toSeq
 
 randomize(now().second)
 
@@ -35,6 +36,14 @@ proc displayTowers(towers: seq[Tower]): string =
   html.add "</ul>"
   html
 
+proc randomHero(): Hero =
+  random.sample(Hero.toSeq)
+
+proc displayHero(hero: Hero): string =
+  let heroName = hero.symbolName.replace("_", " ")
+
+  `div`(heroName, id="hero-name")
+
 router btd6teams:
   get "/":
     redirect("/3")
@@ -54,14 +63,16 @@ router btd6teams:
           title(fmt"btd6 team"),
           link(rel="icon", `type`="image/png", href="data:image/png;base64,iVBORw0KGgo="),
           style("""html { background-color: #222; color: #ddd; }
-                   #map-title { margin-top: 10px; }
-                   #map-name { margin-left: 10px; }
+                   #map-title, #hero-title { margin-top: 10px; }
+                   #map-name, #hero-name { margin-left: 10px; }
                    ul { list-style: none; padding: 0; margin-left: 10px; margin-top: 0; }
           """),
         ),
         body(
           `div`("Towers"),
           displayTowers(sortedTowers),
+          `div`("Hero", id="hero-title"),
+          displayHero(randomHero()),
           `div`("Map", id="map-title"),
           displayMap(randomMap())
         )
