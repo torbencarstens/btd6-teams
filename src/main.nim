@@ -3,7 +3,7 @@ import jester
 import models
 import std/[algorithm, enumutils, envvars, htmlgen, httpclient, random, strformat, strutils, times]
 
-randomize(cpuTime().int)
+randomize(now().second)
 
 proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
   # `symbolRank` is defined in `std/enumutils`: "Returns the index in which a is listed in T."
