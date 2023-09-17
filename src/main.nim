@@ -158,10 +158,9 @@ router btd6teams:
         head(
           meta(charset="utf-8"),
           title(fmt"btd6 team"),
-          # these are simply the magic numbers for the file format identifier in base64 (`89 50 4E 47 0D 0A 1A 0A`)
-          # while this isn't a valid PNG file (we're missing IHDR + IDAT + IEND) browsers simply display their default
-          # favicon which is usually some kind of representation of the globe
-          link(rel="icon", `type`="image/png", href="data:image/png;base64,iVBORw0KGgo="),
+          # while this isn't a valid PNG file (we literally don't have any content) browsers simply display their
+          # default favicon which is usually some kind of representation of the globe
+          link(rel="icon", `type`="image/png", href="data:image/png;base64,"),
           style(
             css(["html"], [("background-color", "#222"), ("color", "#ddd")]),
             css(["#map-title", "#hero-title"], [("margin-top", "10px")]),
