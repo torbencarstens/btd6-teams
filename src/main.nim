@@ -25,6 +25,9 @@ proc modeFromString(value: string): Option[Mode] =
 
   return none(Mode)
 
+proc filterTowersForOnlyType(ttype: TowerType, towers: openArray[Tower]): seq[Tower] =
+  filter(towers, proc(tower: Tower): bool = tower.ttype == ttype)
+
 proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
   # `symbolRank` is defined in `std/enumutils`: "Returns the index in which a is listed in T."
   system.cmp(t1.symbolRank, t2.symbolRank)
@@ -32,8 +35,8 @@ proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
 proc compareTowers(t1: Tower, t2: Tower): int =
   compareTowerTypes(t1.ttype, t2.ttype)
 
-proc getRandomTowers(count: int): seq[Tower] =
-  var samples = TOWERS
+proc getRandomTowers(count: int, towers: seq[Tower]): seq[Tower] =
+  var samples = towers
   shuffle(samples)
 
   samples[0..count - 1]
@@ -96,9 +99,9 @@ proc displayModeSelect(modeStr: string): string =
     html.add option("Any", value="")
   html & "</select>"
 
-proc displayCountSelect(count: int): string =
+proc displayCountSelect(count: int, max: int): string =
   var html = "<label for='count'>Tower count</count><select name='count'>"
-  for i in 1..22:
+  for i in 1..max:
     let number = fmt"{i}"
     if i == count:
       html.add option(number, value=number, selected="true")
@@ -107,11 +110,11 @@ proc displayCountSelect(count: int): string =
 
   html & "</select>"
 
-proc displayForm(count: int, difficulty: string, mode: string): string =
+proc displayForm(count: int, max: int, difficulty: string, mode: string): string =
   form(
     displayMapDifficultySelect(difficulty),
     displayModeSelect(mode),
-    displayCountSelect(count),
+    displayCountSelect(count, max),
     button("Filter", `type`="submit")
   )
 
@@ -122,7 +125,6 @@ proc css(selectors: openArray[string], properties: openArray[(string, string)]):
     css.add fmt"  {property[0]}: {property[1]};" & "\n"
 
   css & "}\n"
-
 
 router btd6teams:
   get "/":
@@ -143,7 +145,13 @@ router btd6teams:
     elif count < 1:
       resp Http400, [("Content-Type", "text/plain")], fmt"what do you need <1 towers for you buffon"
 
-    let randomTowers = getRandomTowers(count)
+    var towers: seq[Tower] = @TOWERS
+    if isTypeOnlyMode(mode.get()):
+      let ttype = getOnlyType(mode.get())
+      towers = filterTowersForOnlyType(ttype, towers)
+
+    let max = towers.len()
+    let randomTowers = getRandomTowers(count, towers)
     let sortedTowers = sorted(randomTowers, compareTowers)
 
     let content = "<!DOCTYPE html>" & html(
@@ -167,7 +175,7 @@ router btd6teams:
           `div`("Map", id="map-title"),
           displayMap(randomMap(mapDifficulty.get()), mode.get()),
           hr(),
-          displayForm(count, difficultyParam, modeParam),
+          displayForm(count, max, difficultyParam, modeParam),
         )
       )
     resp content

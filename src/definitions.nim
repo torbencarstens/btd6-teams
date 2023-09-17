@@ -1,4 +1,5 @@
 import models
+from std/strutils import endsWith
 
 const TOWER_COUNT* = 22
 const TOWERS*: array[0..TOWER_COUNT - 1, Tower] = [
@@ -43,6 +44,18 @@ const MODES*: array[0..MODE_COUNT - 1, Mode] = [
   Mode(name: "Impoppable", difficulty: ModeDifficulty.HARD),
   Mode(name: "Chimps", difficulty: ModeDifficulty.HARD),
 ]
+
+proc isTypeOnlyMode*(mode: Mode): bool =
+  mode.name.endsWith(" only")
+
+proc getOnlyType*(mode: Mode): TowerType =
+  var ttype = TowerType.PRIMARY
+  if mode.name == "Military only":
+    ttype = TowerType.MILITARY
+  elif mode.name == "Magic Monkeys only":
+    ttype = TowerType.MAGIC
+
+  ttype
 
 const MAP_COUNT* = 69
 const MAPS*: array[0..MAP_COUNT - 1, Map] = [
