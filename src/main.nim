@@ -165,6 +165,7 @@ router btd6teams:
             css(["ul"], [("list-style", "none"), ("padding", "0"), ("margin-left", "10px"), ("margin-top", "0")]),
             css(["form"], [("margin-top", "10px")]),
             css(["select", "button"], [("display", "block"), ("margin-bottom", "5px")]),
+            css(["#map-name", "#hero-name", "#map-mode"], [("margin-left", "10px")]),
           )
         ),
         body(
