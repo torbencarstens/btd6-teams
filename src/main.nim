@@ -32,6 +32,13 @@ proc towerTypeFromString(ttype: string): Option[TowerType] =
 
   return none(TowerType)
 
+proc towerFromName(name: string): Option[Tower] =
+  for tower in TOWERS:
+    if tower.name == name:
+      return some(tower)
+
+  none(Tower)
+
 proc filterTowersForOnlyType(ttype: TowerType, towers: openArray[Tower]): seq[Tower] =
   filter(towers, proc(tower: Tower): bool = tower.ttype == ttype)
 
@@ -117,6 +124,16 @@ proc displayCountSelect(count: int, max: int): string =
 
   html & "</select>"
 
+proc displayTowerSelect(towers: openArray[Tower]): string =
+  var html = "</count><select name='tower' multiple>"
+  for tower in TOWERS:
+    let value = tower.name
+    if tower in towers or len(towers) == 0:
+      html.add option(value, value=value, selected="true")
+    else:
+      html.add option(value, value=value)
+
+  html & "</select>"
 
 proc displayTowerTypeSelect(ttypes: openArray[TowerType]): string =
   var html = "</count><select name='ttype' multiple>"
@@ -129,13 +146,25 @@ proc displayTowerTypeSelect(ttypes: openArray[TowerType]): string =
 
   html & "</select>"
 
-proc displayForm(count: int, max: int, difficulty: string, mode: string, ttypes: openArray[TowerType]): string =
+proc displayForm(count: int, max: int, difficulty: string, mode: string, ttypes: openArray[TowerType], towers: openArray[Tower]): string =
   form(
     displayMapDifficultySelect(difficulty),
     displayModeSelect(mode),
     displayCountSelect(count, max),
     displayTowerTypeSelect(ttypes),
+    displayTowerSelect(towers),
     button("Filter", `type`="submit")
+  )
+
+proc filterMap[N, V](list: openArray[V], filterProc: proc(v: V): bool, mapProc: proc(v: V): N): seq[N] =
+  let filtered = filter(list, filterProc)
+  sequtils.map(filtered, mapProc)
+
+proc filterNone[V](list: openArray[Option[V]]): seq[V] =
+  filterMap(
+    list,
+    proc(t: Option[V]): bool = t.isSome(),
+    proc(t: Option[V]): V = t.get()
   )
 
 proc css(selectors: openArray[string], properties: openArray[(string, string)]): string =
@@ -146,18 +175,19 @@ proc css(selectors: openArray[string], properties: openArray[(string, string)]):
 
   css & "}\n"
 
+proc homepageLink(request: Request): string =
+  `div`(a("Return", href=fmt"/?{request.query()}"))
+
 router btd6teams:
   # this is fine, don't worry about it
   get "/":
-    let countParam = params(request).getOrDefault("count", "3")
-    let count = parseInt(countParam);
+    let count = params(request).getOrDefault("count", "3").parseInt()
     let difficultyParam = params(request).getOrDefault("difficulty", "ANY").toUpperAscii()
     let modeParam = params(request).getOrDefault("mode", "").toUpperAscii()
     let ttypesWithNone = sequtils.map(paramValuesAsSeq(request).getOrDefault("ttype", @[]), towerTypeFromString)
-    let ttypes: seq[TowerType] = sequtils.map(
-      filter(ttypesWithNone,
-        proc(t: Option[TowerType]): bool = t.isSome()),
-          proc(t: Option[TowerType]): TowerType = t.get())
+    let ttypes: seq[TowerType] = filterNone(ttypesWithNone)
+    let towerSelectionNone: seq[Option[Tower]] = sequtils.map(paramValuesAsSeq(request).getOrDefault("tower", @[]), towerFromName)
+    let towerSelection: seq[Tower] = filterNone(towerSelectionNone)
 
     let mapDifficulty = mapDifficultyFromString(difficultyParam)
     let mode = modeFromString(modeParam)
@@ -174,14 +204,19 @@ router btd6teams:
         let ttypevalue = map(ttypes, proc(t: TowerType): string = fmt"{t}").join(", ")
         let message = fmt"mode ({mode.get().name}) is incompatible with tower type ({ttypevalue}) selection"
         resp Http400, [("Content-Type", "text/plain")], message
-
+    if towerSelection.len() > 0:
+      towers = filter(towerSelection, proc(t: Tower): bool = t in towers)
 
     let max = towers.len()
 
-    if count > TOWER_COUNT:
-      resp Http400, [("Content-Type", "text/plain")], fmt"there are only {max} towers for the current selection"
+    if max == 0:
+      resp Http400, fmt"your selection yielded 0 towers" & homepageLink(request)
+    if max < count:
+      resp Http400, fmt"your selection yielded {max} towers while your required count was {count}" & homepageLink(request)
+    elif count > TOWER_COUNT:
+      resp Http400, fmt"there are only {max} towers for the current selection" & homepageLink(request)
     elif count < 1:
-      resp Http400, [("Content-Type", "text/plain")], fmt"what do you need <1 towers for you buffon (hero only mode?)"
+      resp Http400, fmt"what do you need <1 towers for you buffon (hero only mode?)" & homepageLink(request)
 
     let randomTowers = getRandomTowers(count, towers)
     let sortedTowers = sorted(randomTowers, compareTowers)
@@ -210,7 +245,7 @@ router btd6teams:
           `div`("Map", id="map-title"),
           displayMap(randomMap(mapDifficulty.get()), mode.get()),
           hr(),
-          displayForm(count, max, difficultyParam, modeParam, ttypes),
+          displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection),
         )
       )
     resp content
