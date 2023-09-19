@@ -2,7 +2,7 @@ import definitions
 import jester
 import models
 import std/[algorithm, enumutils, envvars, htmlgen, httpclient, options, random, strformat, strutils, times]
-from std/sequtils import filter, toSeq
+from std/sequtils import filter, map, toSeq
 
 randomize(now().second)
 
@@ -24,6 +24,13 @@ proc modeFromString(value: string): Option[Mode] =
       return some(mode)
 
   return none(Mode)
+
+proc towerTypeFromString(ttype: string): Option[TowerType] =
+  for ev in TowerType.toSeq:
+    if ev.symbolName.toUpperAscii() == ttype.toUpperAscii():
+      return some(ev)
+
+  return none(TowerType)
 
 proc filterTowersForOnlyType(ttype: TowerType, towers: openArray[Tower]): seq[Tower] =
   filter(towers, proc(tower: Tower): bool = tower.ttype == ttype)
@@ -110,11 +117,24 @@ proc displayCountSelect(count: int, max: int): string =
 
   html & "</select>"
 
-proc displayForm(count: int, max: int, difficulty: string, mode: string): string =
+
+proc displayTowerTypeSelect(ttypes: openArray[TowerType]): string =
+  var html = "</count><select name='ttype' multiple>"
+  for ev in TowerType.toSeq:
+    let value = fmt"{ev}"
+    if ev in ttypes:
+      html.add option(value, value=value, selected="true")
+    else:
+      html.add option(value, value=value)
+
+  html & "</select>"
+
+proc displayForm(count: int, max: int, difficulty: string, mode: string, ttypes: openArray[TowerType]): string =
   form(
     displayMapDifficultySelect(difficulty),
     displayModeSelect(mode),
     displayCountSelect(count, max),
+    displayTowerTypeSelect(ttypes),
     button("Filter", `type`="submit")
   )
 
@@ -127,11 +147,17 @@ proc css(selectors: openArray[string], properties: openArray[(string, string)]):
   css & "}\n"
 
 router btd6teams:
+  # this is fine, don't worry about it
   get "/":
     let countParam = params(request).getOrDefault("count", "3")
     let count = parseInt(countParam);
     let difficultyParam = params(request).getOrDefault("difficulty", "ANY").toUpperAscii()
     let modeParam = params(request).getOrDefault("mode", "").toUpperAscii()
+    let ttypesWithNone = sequtils.map(paramValuesAsSeq(request).getOrDefault("ttype", @[]), towerTypeFromString)
+    let ttypes: seq[TowerType] = sequtils.map(
+      filter(ttypesWithNone,
+        proc(t: Option[TowerType]): bool = t.isSome()),
+          proc(t: Option[TowerType]): TowerType = t.get())
 
     let mapDifficulty = mapDifficultyFromString(difficultyParam)
     let mode = modeFromString(modeParam)
@@ -144,6 +170,12 @@ router btd6teams:
     if isTypeOnlyMode(mode.get()):
       let ttype = getOnlyType(mode.get())
       towers = filterTowersForOnlyType(ttype, towers)
+      if len(ttypes) > 0 and ttype notin ttypes:
+        let ttypevalue = map(ttypes, proc(t: TowerType): string = fmt"{t}").join(", ")
+        let message = fmt"mode ({mode.get().name}) is incompatible with tower type ({ttypevalue}) selection"
+        resp Http400, [("Content-Type", "text/plain")], message
+
+
     let max = towers.len()
 
     if count > TOWER_COUNT:
@@ -178,7 +210,7 @@ router btd6teams:
           `div`("Map", id="map-title"),
           displayMap(randomMap(mapDifficulty.get()), mode.get()),
           hr(),
-          displayForm(count, max, difficultyParam, modeParam),
+          displayForm(count, max, difficultyParam, modeParam, ttypes),
         )
       )
     resp content
