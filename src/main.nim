@@ -140,17 +140,17 @@ router btd6teams:
     if mode.isNone():
       resp Http400, [("Content-Type", "text/plain")], fmt"there is no `{modeParam}` mode"
 
-    if count > TOWER_COUNT:
-      resp Http400, [("Content-Type", "text/plain")], fmt"there are only {TOWER_COUNT} towers"
-    elif count < 1:
-      resp Http400, [("Content-Type", "text/plain")], fmt"what do you need <1 towers for you buffon"
-
     var towers: seq[Tower] = @TOWERS
     if isTypeOnlyMode(mode.get()):
       let ttype = getOnlyType(mode.get())
       towers = filterTowersForOnlyType(ttype, towers)
-
     let max = towers.len()
+
+    if count > TOWER_COUNT:
+      resp Http400, [("Content-Type", "text/plain")], fmt"there are only {max} towers for the current selection"
+    elif count < 1:
+      resp Http400, [("Content-Type", "text/plain")], fmt"what do you need <1 towers for you buffon (hero only mode?)"
+
     let randomTowers = getRandomTowers(count, towers)
     let sortedTowers = sorted(randomTowers, compareTowers)
 
