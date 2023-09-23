@@ -88,7 +88,8 @@ proc displayTowers(towers: seq[Tower]): string =
 
 proc randomHero(allowed: seq[Hero]): Hero =
   var heroes = Hero.toSeq
-  heroes = filter(heroes, proc(h: Hero): bool = h in allowed)
+  if len(allowed) > 0:
+    heroes = filter(heroes, proc(h: Hero): bool = h in allowed)
   random.sample(heroes)
 
 proc displayHero(hero: Hero): string =
@@ -162,7 +163,7 @@ proc displayHeroSelect(selected: openArray[Hero]): string =
 
   for ev in heroes:
     let value = fmt"{ev}".replace("_", " ")
-    if ev in selected:
+    if ev in selected or len(selected) == 0:
       html.add option(value, value=value, selected="true")
     else:
       html.add option(value, value=value)
