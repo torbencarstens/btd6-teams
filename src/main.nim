@@ -1,7 +1,7 @@
 import definitions
 import jester
 import models
-import std/[algorithm, enumutils, envvars, htmlgen, httpclient, options, random, strformat, strutils, times]
+import std/[algorithm, enumutils, envvars, htmlgen, httpclient, options, random, segfaults, strformat, strutils, times]
 from std/sequtils import filter, map, toSeq
 
 randomize(now().second)
