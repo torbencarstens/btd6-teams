@@ -32,6 +32,13 @@ proc towerTypeFromString(ttype: string): Option[TowerType] =
 
   return none(TowerType)
 
+proc heroFromString(hero: string): Option[Hero] =
+  for ev in Hero.toSeq:
+    if ev.symbolName.toUpperAscii() == hero.toUpperAscii():
+      return some(ev)
+
+  return none(Hero)
+
 proc towerFromName(name: string): Option[Tower] =
   for tower in TOWERS:
     if tower.name == name:
@@ -79,8 +86,10 @@ proc displayTowers(towers: seq[Tower]): string =
   html.add "</ul>"
   html
 
-proc randomHero(): Hero =
-  random.sample(Hero.toSeq)
+proc randomHero(allowed: seq[Hero]): Hero =
+  var heroes = Hero.toSeq
+  heroes = filter(heroes, proc(h: Hero): bool = h in allowed)
+  random.sample(heroes)
 
 proc displayHero(hero: Hero): string =
   let heroName = hero.symbolName.replace("_", " ")
@@ -125,7 +134,7 @@ proc displayCountSelect(count: int, max: int): string =
   html & "</select>"
 
 proc displayTowerSelect(towers: openArray[Tower]): string =
-  var html = "</count><select name='tower' multiple>"
+  var html = "<select name='tower' multiple>"
   for tower in TOWERS:
     let value = tower.name
     if tower in towers or len(towers) == 0:
@@ -136,7 +145,7 @@ proc displayTowerSelect(towers: openArray[Tower]): string =
   html & "</select>"
 
 proc displayTowerTypeSelect(ttypes: openArray[TowerType]): string =
-  var html = "</count><select name='ttype' multiple>"
+  var html = "<select name='ttype' multiple>"
   for ev in TowerType.toSeq:
     let value = fmt"{ev}"
     if ev in ttypes:
@@ -146,13 +155,29 @@ proc displayTowerTypeSelect(ttypes: openArray[TowerType]): string =
 
   html & "</select>"
 
-proc displayForm(count: int, max: int, difficulty: string, mode: string, ttypes: openArray[TowerType], towers: openArray[Tower]): string =
+proc displayHeroSelect(selected: openArray[Hero]): string =
+  var html = "<select name='hero' multiple>"
+  var heroes = Hero.toSeq
+  sort(heroes, proc(h1: Hero, h2: Hero): int = system.cmp(h1.symbolName, h2.symbolName))
+
+  for ev in heroes:
+    let value = fmt"{ev}".replace("_", " ")
+    if ev in selected:
+      html.add option(value, value=value, selected="true")
+    else:
+      html.add option(value, value=value)
+
+  html & "</select>"
+
+proc displayForm(count: int, max: int, difficulty: string, mode: string, ttypes: openArray[TowerType],
+                 towers: openArray[Tower], heroes: openArray[Hero]): string =
   form(
     displayMapDifficultySelect(difficulty),
     displayModeSelect(mode),
     displayCountSelect(count, max),
     displayTowerTypeSelect(ttypes),
     displayTowerSelect(towers),
+    displayHeroSelect(heroes),
     button("Filter", `type`="submit")
   )
 
@@ -188,6 +213,8 @@ router btd6teams:
     let ttypes: seq[TowerType] = filterNone(ttypesWithNone)
     let towerSelectionNone: seq[Option[Tower]] = sequtils.map(paramValuesAsSeq(request).getOrDefault("tower", @[]), towerFromName)
     let towerSelection: seq[Tower] = filterNone(towerSelectionNone)
+    let heroSelectionWithNone = sequtils.map(paramValuesAsSeq(request).getOrDefault("hero", @[]), heroFromString)
+    let heroSelection = filterNone(heroSelectionWithNone)
 
     let mapDifficulty = mapDifficultyFromString(difficultyParam)
     let mode = modeFromString(modeParam)
@@ -220,6 +247,7 @@ router btd6teams:
 
     let randomTowers = getRandomTowers(count, towers)
     let sortedTowers = sorted(randomTowers, compareTowers)
+    let hero = randomHero(heroSelection)
 
     let content = "<!DOCTYPE html>" & html(
         head(
@@ -241,11 +269,11 @@ router btd6teams:
           `div`("Towers"),
           displayTowers(sortedTowers),
           `div`("Hero", id="hero-title"),
-          displayHero(randomHero()),
+          displayHero(hero),
           `div`("Map", id="map-title"),
           displayMap(randomMap(mapDifficulty.get()), mode.get()),
           hr(),
-          displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection),
+          displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection),
         )
       )
     resp content
