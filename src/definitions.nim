@@ -102,6 +102,7 @@ const MAPS*: array[0..MAP_COUNT - 1, Map] = [
   Map(name: "Chutes", difficulty: MapDifficulty.INTERMEDIATE, available_terrains: @[Terrain.Ground, Terrain.Water]),
   Map(name: "Rake", difficulty: MapDifficulty.INTERMEDIATE, available_terrains: @[Terrain.Ground, Terrain.Water]),
   Map(name: "Spice Islands", difficulty: MapDifficulty.INTERMEDIATE, available_terrains: @[Terrain.Ground, Terrain.Water]),
+  Map(name: "Dark Path", difficulty: MapDifficulty.ADVANCED, available_terrains: @[Terrain.Ground, Terrain.Water]),
   Map(name: "Erosion", difficulty: MapDifficulty.ADVANCED, available_terrains: @[Terrain.Ground, Terrain.Water]),
   Map(name: "Midnight Mansion", difficulty: MapDifficulty.ADVANCED, available_terrains: @[Terrain.Ground]),
   Map(name: "Sunken Columns", difficulty: MapDifficulty.ADVANCED, available_terrains: @[Terrain.Ground, Terrain.Water]),
