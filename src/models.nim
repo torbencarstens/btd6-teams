@@ -7,9 +7,15 @@ type
     ANY
 
 type
+  Terrain* = enum
+    Ground
+    Water
+
+type
   Map* = object
     name*: string
     difficulty*: MapDifficulty
+    available_terrains*: seq[Terrain]
 
 type
   TowerType* = enum
@@ -22,6 +28,7 @@ type
   Tower* = object
     name*: string
     ttype*: TowerType
+    placement_terrain*: Terrain
 
 type
   Hero* = enum
