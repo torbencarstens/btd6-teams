@@ -232,16 +232,20 @@ proc getAllFormParams(request: Request): (int, string, string, seq[TowerType], s
 
   (count, difficultyParam, modeParam, ttypes, towerSelection, heroSelection)
 
-proc filterMapForTerrain(mapDifficulty: MapDifficulty, towerSelection: openArray[Tower], count: int): Map =
+proc filterMapForTerrain(mapDifficulty: MapDifficulty, towerSelection: openArray[Tower], count: int): Option[Map] =
   var rmap = none(Map)
   var ftowers: seq[Tower] = @[]
-  while rmap.isNone:
+  var count = 0
+
+  while rmap.isNone and count < 100:
     var m = randomMap(mapDifficulty)
     ftowers = filterTowersForMapTerrain(towerSelection, m)
     if ftowers.len() >= count:
       rmap = some(m)
 
-  rmap.get()
+    count += 1
+
+  rmap
 
 proc buildHtml(sortedTowers: openArray[Tower], hero: Hero, rmap: Map, mode: Mode, count: int, max:int, difficultyParam: string, modeParam: string, ttypes: openArray[TowerType], towerSelection: openArray[Tower], heroSelection: openArray[Hero]): string =
   "<!DOCTYPE html>" & html(
@@ -288,7 +292,6 @@ router btd6teams:
     let mapDifficulty = mapDifficultyOpt.get()
 
     var towers: seq[Tower] = @TOWERS
-    let rmap = filterMapForTerrain(mapDifficulty, towerSelection, count)
 
     if isTypeOnlyMode(mode):
       let ttype = getOnlyType(mode)
@@ -300,6 +303,12 @@ router btd6teams:
 
     if towerSelection.len() > 0:
       towers = filter(towerSelection, proc(t: Tower): bool = t in towers)
+
+    let rmap = filterMapForTerrain(mapDifficulty, towers, count)
+    if rmapOpt.isNone:
+      resp Http400, "couldn't find a map for the chosen filters"
+
+    let rmap = rmapOpt.get()
 
     let max = towers.len()
     if max == 0:
