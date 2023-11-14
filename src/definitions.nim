@@ -25,6 +25,7 @@ const TOWERS*: array[0..TOWER_COUNT - 1, Tower] = [
   Tower(name: "Spike Factory", ttype: TowerType.SUPPORT, placement_terrain: Terrain.Ground),
   Tower(name: "Monkey Village", ttype: TowerType.SUPPORT, placement_terrain: Terrain.Ground),
   Tower(name: "Engineer Monkey", ttype: TowerType.SUPPORT, placement_terrain: Terrain.Ground),
+  Tower(name: "Beast Handler", ttype: TowerType.SUPPORT, placement_terrain: Terrain.Ground),
 ]
 
 const MODE_COUNT* = 14
