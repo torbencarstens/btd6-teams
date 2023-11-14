@@ -304,7 +304,7 @@ router btd6teams:
     if towerSelection.len() > 0:
       towers = filter(towerSelection, proc(t: Tower): bool = t in towers)
 
-    let rmap = filterMapForTerrain(mapDifficulty, towers, count)
+    let rmapOpt = filterMapForTerrain(mapDifficulty, towers, count)
     if rmapOpt.isNone:
       resp Http400, "couldn't find a map for the chosen filters"
 
