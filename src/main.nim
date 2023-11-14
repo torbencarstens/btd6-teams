@@ -85,7 +85,7 @@ proc displayMap(m: Map, mode: Mode): string =
 proc displayTower(t: Tower): string =
   `li`(t.name)
 
-proc displayTowers(towers: seq[Tower]): string =
+proc displayTowers(towers: openArray[Tower]): string =
   var html = "<ul>"
   for tower in towers:
     html.add displayTower(tower)
@@ -221,48 +221,87 @@ proc getParamListMapped[IV, V](request: Request, key: string, default: seq[strin
 proc getParamMapped[V](request: Request, key: string, default: string, map_fn: proc(s: string): V {.gcsafe.}): V =
   map_fn(params(request).getOrDefault(key, default))
 
+proc getAllFormParams(request: Request): (int, string, string, seq[TowerType], seq[Tower], seq[Hero]) =
+  let count: int = getParamMapped(request, "count", "3", parseInt)
+  let difficultyParam = getParamMapped(request, "difficulty", "ANY", toUpperAscii)
+  let modeParam = getParamMapped(request, "mode", "", toUpperAscii)
+
+  let ttypes = getParamListMapped[Option[TowerType], TowerType](request, "ttype", @[], towerTypeFromString)
+  let towerSelection = getParamListMapped[Option[Tower], Tower](request, "tower", @[], towerFromName)
+  let heroSelection = getParamListMapped[Option[Hero], Hero](request, "hero", @[], heroFromString)
+
+  (count, difficultyParam, modeParam, ttypes, towerSelection, heroSelection)
+
+proc filterMapForTerrain(mapDifficulty: MapDifficulty, towerSelection: openArray[Tower], count: int): Map =
+  var rmap = none(Map)
+  var ftowers: seq[Tower] = @[]
+  while rmap.isNone:
+    var m = randomMap(mapDifficulty)
+    ftowers = filterTowersForMapTerrain(towerSelection, m)
+    if ftowers.len() >= count:
+      rmap = some(m)
+
+  rmap.get()
+
+proc buildHtml(sortedTowers: openArray[Tower], hero: Hero, rmap: Map, mode: Mode, count: int, max:int, difficultyParam: string, modeParam: string, ttypes: openArray[TowerType], towerSelection: openArray[Tower], heroSelection: openArray[Hero]): string =
+  "<!DOCTYPE html>" & html(
+    head(
+      meta(charset="utf-8"),
+      title(fmt"btd6 team"),
+      # while this isn't a valid PNG file (we literally don't have any content) browsers simply display their
+      # default favicon which is usually some kind of representation of the globe
+      link(rel="icon", `type`="image/png", href="data:image/png;base64,"),
+      style(
+        css(["html"], [("background-color", "#222"), ("color", "#ddd")]),
+        css(["#map-title", "#hero-title"], [("margin-top", "10px")]),
+        css(["ul"], [("list-style", "none"), ("padding", "0"), ("margin-left", "10px"), ("margin-top", "0")]),
+        css(["form"], [("margin-top", "10px")]),
+        css(["select", "button"], [("display", "block"), ("margin-bottom", "5px")]),
+        css(["#map-name", "#hero-name", "#map-mode"], [("margin-left", "10px")]),
+      )
+    ),
+    body(
+      `div`("Towers"),
+      displayTowers(sortedTowers),
+      `div`("Hero", id="hero-title"),
+      displayHero(hero),
+      `div`("Map", id="map-title"),
+      displayMap(rmap, mode),
+      hr(),
+      displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection),
+    )
+  )
+
 router btd6teams:
   # this is fine, don't worry about it
   get "/":
-    # let count = params(request).getOrDefault("count", "3").parseInt()
-    let count: int = getParamMapped(request, "count", "3", parseInt)
-    let difficultyParam = getParamMapped(request, "difficulty", "ANY", toUpperAscii)
-    let modeParam = getParamMapped(request, "mode", "", toUpperAscii)
+    let (count, difficultyParam, modeParam, ttypes, towerSelection, heroSelection) = getAllFormParams(request)
 
-    let ttypes = getParamListMapped[Option[TowerType], TowerType](request, "ttype", @[], towerTypeFromString)
-    let towerSelection = getParamListMapped[Option[Tower], Tower](request, "tower", @[], towerFromName)
-    let heroSelection = getParamListMapped[Option[Hero], Hero](request, "hero", @[], heroFromString)
-
-    let mapDifficulty = mapDifficultyFromString(difficultyParam)
-    let mode = modeFromString(modeParam)
-    if mapDifficulty.isNone():
+    let mapDifficultyOpt = mapDifficultyFromString(difficultyParam)
+    let modeOpt = modeFromString(modeParam)
+    if mapDifficultyOpt.isNone():
       resp Http400, [("Content-Type", "text/plain")], fmt"there is no `{difficultyParam}` difficulty"
-    if mode.isNone():
+    if modeOpt.isNone():
       resp Http400, [("Content-Type", "text/plain")], fmt"there is no `{modeParam}` mode"
 
+    let mode = modeOpt.get()
+    let mapDifficulty = mapDifficultyOpt.get()
+
     var towers: seq[Tower] = @TOWERS
+    let rmap = filterMapForTerrain(mapDifficulty, towerSelection, count)
 
-    var rmap = none(Map)
-    var ftowers: seq[Tower] = @[]
-    while rmap.isNone:
-      var m = randomMap(mapDifficulty.get())
-      ftowers = filterTowersForMapTerrain(towerSelection, m)
-      if ftowers.len() >= count:
-        rmap = some(m)
-
-    if isTypeOnlyMode(mode.get()):
-      let ttype = getOnlyType(mode.get())
+    if isTypeOnlyMode(mode):
+      let ttype = getOnlyType(mode)
       towers = filterTowersForOnlyType(ttype, towers)
       if len(ttypes) > 0 and ttype notin ttypes:
-        let ttypevalue = map(ttypes, proc(t: TowerType): string = fmt"{t}").join(", ")
-        let message = fmt"mode ({mode.get().name}) is incompatible with tower type ({ttypevalue}) selection"
+        let ttypevalue = sequtils.map(ttypes, proc(t: TowerType): string = fmt"{t}").join(", ")
+        let message = fmt"mode ({mode.name}) is incompatible with tower type ({ttypevalue}) selection"
         resp Http400, [("Content-Type", "text/plain")], message
 
     if towerSelection.len() > 0:
       towers = filter(towerSelection, proc(t: Tower): bool = t in towers)
 
     let max = towers.len()
-
     if max == 0:
       resp Http400, fmt"your selection yielded 0 towers" & homepageLink(request)
     if max < count:
@@ -272,37 +311,12 @@ router btd6teams:
     elif count < 1:
       resp Http400, fmt"what do you need <1 towers for you buffon (hero only mode?)" & homepageLink(request)
 
-    let randomTowers = getRandomTowers(count, towers, rmap.get())
+    let randomTowers = getRandomTowers(count, towers, rmap)
     let sortedTowers = sorted(randomTowers, compareTowers)
     let hero = randomHero(heroSelection)
 
-    let content = "<!DOCTYPE html>" & html(
-        head(
-          meta(charset="utf-8"),
-          title(fmt"btd6 team"),
-          # while this isn't a valid PNG file (we literally don't have any content) browsers simply display their
-          # default favicon which is usually some kind of representation of the globe
-          link(rel="icon", `type`="image/png", href="data:image/png;base64,"),
-          style(
-            css(["html"], [("background-color", "#222"), ("color", "#ddd")]),
-            css(["#map-title", "#hero-title"], [("margin-top", "10px")]),
-            css(["ul"], [("list-style", "none"), ("padding", "0"), ("margin-left", "10px"), ("margin-top", "0")]),
-            css(["form"], [("margin-top", "10px")]),
-            css(["select", "button"], [("display", "block"), ("margin-bottom", "5px")]),
-            css(["#map-name", "#hero-name", "#map-mode"], [("margin-left", "10px")]),
-          )
-        ),
-        body(
-          `div`("Towers"),
-          displayTowers(sortedTowers),
-          `div`("Hero", id="hero-title"),
-          displayHero(hero),
-          `div`("Map", id="map-title"),
-          displayMap(rmap.get(), mode.get()),
-          hr(),
-          displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection),
-        )
-      )
+    let content = buildHtml(sortedTowers, hero, rmap, mode, count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection)
+
     resp content
 
 proc main() =
