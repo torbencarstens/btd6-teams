@@ -211,18 +211,27 @@ proc css(selectors: openArray[string], properties: openArray[(string, string)]):
 proc homepageLink(request: Request): string =
   `div`(a("Return", href=fmt"/?{request.query()}"))
 
+proc getParamListMapped[IV, V](request: Request, key: string, default: seq[string], map_fn: proc(s: string): IV {.gcsafe.}): seq[V] =
+  let intermediate = sequtils.map(
+      paramValuesAsSeq(request).getOrDefault(key, default),
+      map_fn
+    )
+  filterNone(intermediate)
+
+proc getParamMapped[V](request: Request, key: string, default: string, map_fn: proc(s: string): V {.gcsafe.}): V =
+  map_fn(params(request).getOrDefault(key, default))
+
 router btd6teams:
   # this is fine, don't worry about it
   get "/":
-    let count = params(request).getOrDefault("count", "3").parseInt()
-    let difficultyParam = params(request).getOrDefault("difficulty", "ANY").toUpperAscii()
-    let modeParam = params(request).getOrDefault("mode", "").toUpperAscii()
-    let ttypesWithNone = sequtils.map(paramValuesAsSeq(request).getOrDefault("ttype", @[]), towerTypeFromString)
-    let ttypes: seq[TowerType] = filterNone(ttypesWithNone)
-    let towerSelectionNone: seq[Option[Tower]] = sequtils.map(paramValuesAsSeq(request).getOrDefault("tower", @[]), towerFromName)
-    let towerSelection: seq[Tower] = filterNone(towerSelectionNone)
-    let heroSelectionWithNone = sequtils.map(paramValuesAsSeq(request).getOrDefault("hero", @[]), heroFromString)
-    let heroSelection = filterNone(heroSelectionWithNone)
+    # let count = params(request).getOrDefault("count", "3").parseInt()
+    let count: int = getParamMapped(request, "count", "3", parseInt)
+    let difficultyParam = getParamMapped(request, "difficulty", "ANY", toUpperAscii)
+    let modeParam = getParamMapped(request, "mode", "", toUpperAscii)
+
+    let ttypes = getParamListMapped[Option[TowerType], TowerType](request, "ttype", @[], towerTypeFromString)
+    let towerSelection = getParamListMapped[Option[Tower], Tower](request, "tower", @[], towerFromName)
+    let heroSelection = getParamListMapped[Option[Hero], Hero](request, "hero", @[], heroFromString)
 
     let mapDifficulty = mapDifficultyFromString(difficultyParam)
     let mode = modeFromString(modeParam)
@@ -240,7 +249,6 @@ router btd6teams:
       ftowers = filterTowersForMapTerrain(towerSelection, m)
       if ftowers.len() >= count:
         rmap = some(m)
-
 
     if isTypeOnlyMode(mode.get()):
       let ttype = getOnlyType(mode.get())
