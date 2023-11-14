@@ -1,7 +1,7 @@
 import models
 from std/strutils import endsWith
 
-const TOWER_COUNT* = 22
+const TOWER_COUNT* = 23
 const TOWERS*: array[0..TOWER_COUNT - 1, Tower] = [
   Tower(name: "Dart Monkey", ttype: TowerType.PRIMARY, placement_terrain: Terrain.Ground),
   Tower(name: "Boomerang Monkey", ttype: TowerType.PRIMARY, placement_terrain: Terrain.Ground),
@@ -58,7 +58,7 @@ proc getOnlyType*(mode: Mode): TowerType =
 
   ttype
 
-const MAP_COUNT* = 69
+const MAP_COUNT* = 70
 const MAPS*: array[0..MAP_COUNT - 1, Map] = [
   Map(name: "Monkey Meadow", difficulty: MapDifficulty.BEGINNER, available_terrains: @[Terrain.Ground]),
   Map(name: "Tree Stump", difficulty: MapDifficulty.BEGINNER, available_terrains: @[Terrain.Ground]),

@@ -6,6 +6,9 @@ from std/sequtils import filter, map, toSeq
 
 randomize(now().second)
 
+proc canPlace(tower: Tower, map: Map): bool =
+  tower.placement_terrain in map.available_terrains
+
 proc mapDifficultyFromString*(value: string): Option[MapDifficulty] =
   for ev in MapDifficulty.toSeq:
     if ev.symbolName == value:
@@ -56,8 +59,9 @@ proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
 proc compareTowers(t1: Tower, t2: Tower): int =
   compareTowerTypes(t1.ttype, t2.ttype)
 
-proc getRandomTowers(count: int, towers: seq[Tower]): seq[Tower] =
-  var samples = towers
+proc getRandomTowers(count: int, towers: seq[Tower], map: Map): seq[Tower] =
+  var samples = filter(towers, proc(tower: Tower): bool = tower.placement_terrain in map.available_terrains)
+
   shuffle(samples)
 
   samples[0..count - 1]
@@ -68,6 +72,9 @@ proc randomMap(difficulty: MapDifficulty): Map =
     sample(maps)
   else:
     sample(MAPS)
+
+proc filterTowersForMapTerrain(towers: openArray[Tower], map: Map): seq[Tower] =
+  filter(towers, proc(tower: Tower): bool = canPlace(tower, map))
 
 proc displayMap(m: Map, mode: Mode): string =
   `div`(
@@ -203,7 +210,7 @@ proc css(selectors: openArray[string], properties: openArray[(string, string)]):
 
 proc homepageLink(request: Request): string =
   `div`(a("Return", href=fmt"/?{request.query()}"))
-
+import std/os
 router btd6teams:
   # this is fine, don't worry about it
   get "/":
@@ -225,6 +232,16 @@ router btd6teams:
       resp Http400, [("Content-Type", "text/plain")], fmt"there is no `{modeParam}` mode"
 
     var towers: seq[Tower] = @TOWERS
+
+    var rmap = none(Map)
+    var ftowers: seq[Tower] = @[]
+    while rmap.isNone:
+      var m = randomMap(mapDifficulty.get())
+      ftowers = filterTowersForMapTerrain(towerSelection, m)
+      if ftowers.len() >= count:
+        rmap = some(m)
+
+
     if isTypeOnlyMode(mode.get()):
       let ttype = getOnlyType(mode.get())
       towers = filterTowersForOnlyType(ttype, towers)
@@ -232,6 +249,7 @@ router btd6teams:
         let ttypevalue = map(ttypes, proc(t: TowerType): string = fmt"{t}").join(", ")
         let message = fmt"mode ({mode.get().name}) is incompatible with tower type ({ttypevalue}) selection"
         resp Http400, [("Content-Type", "text/plain")], message
+
     if towerSelection.len() > 0:
       towers = filter(towerSelection, proc(t: Tower): bool = t in towers)
 
@@ -246,7 +264,7 @@ router btd6teams:
     elif count < 1:
       resp Http400, fmt"what do you need <1 towers for you buffon (hero only mode?)" & homepageLink(request)
 
-    let randomTowers = getRandomTowers(count, towers)
+    let randomTowers = getRandomTowers(count, towers, rmap.get())
     let sortedTowers = sorted(randomTowers, compareTowers)
     let hero = randomHero(heroSelection)
 
@@ -272,7 +290,7 @@ router btd6teams:
           `div`("Hero", id="hero-title"),
           displayHero(hero),
           `div`("Map", id="map-title"),
-          displayMap(randomMap(mapDifficulty.get()), mode.get()),
+          displayMap(rmap.get(), mode.get()),
           hr(),
           displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection),
         )
