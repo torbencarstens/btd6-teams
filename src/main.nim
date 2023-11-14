@@ -210,7 +210,7 @@ proc css(selectors: openArray[string], properties: openArray[(string, string)]):
 
 proc homepageLink(request: Request): string =
   `div`(a("Return", href=fmt"/?{request.query()}"))
-import std/os
+
 router btd6teams:
   # this is fine, don't worry about it
   get "/":
