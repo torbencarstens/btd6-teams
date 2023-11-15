@@ -1,8 +1,9 @@
 import definitions
 import jester
 import models
-import std/[algorithm, enumutils, envvars, htmlgen, httpclient, options, random, segfaults, strformat, strutils, times]
+import std/[algorithm, enumutils, envvars, httpclient, options, random, segfaults, strformat, strutils, times]
 from std/sequtils import filter, map, toSeq
+import view
 
 randomize(now().second)
 
@@ -76,118 +77,11 @@ proc randomMap(difficulty: MapDifficulty): Map =
 proc filterTowersForMapTerrain(towers: openArray[Tower], map: Map): seq[Tower] =
   filter(towers, proc(tower: Tower): bool = canPlace(tower, map))
 
-proc displayMap(m: Map, mode: Mode): string =
-  `div`(
-    `div`(fmt"{m.name} ({m.difficulty})", id="map-name"),
-    `div`(fmt"{mode.name} ({mode.difficulty})", id="map-mode"),
-  )
-
-proc displayTower(t: Tower): string =
-  `li`(t.name)
-
-proc displayTowers(towers: openArray[Tower]): string =
-  var html = "<ul>"
-  for tower in towers:
-    html.add displayTower(tower)
-
-  html.add "</ul>"
-  html
-
 proc randomHero(allowed: seq[Hero]): Hero =
   var heroes = Hero.toSeq
   if len(allowed) > 0:
     heroes = filter(heroes, proc(h: Hero): bool = h in allowed)
   random.sample(heroes)
-
-proc displayHero(hero: Hero): string =
-  let heroName = hero.symbolName.replace("_", " ")
-
-  `div`(heroName, id="hero-name")
-
-proc displayMapDifficultySelect(difficulty: string): string =
-  var html = "<select name='difficulty'>"
-  for ev in MapDifficulty.toSeq:
-    if ev.symbolName.toLowerAscii() == difficulty.toLowerAscii():
-      html.add option(ev.symbolName, value=ev.symbolName, selected="true")
-    else:
-      html.add option(ev.symbolName, value=ev.symbolName)
-
-  html & "</select>"
-
-proc displayModeSelect(modeStr: string): string =
-  var html = "<select name='mode'>"
-  for mode in MODES:
-    let name = mode.name.replace(" ", "_")
-    let modeFormat = fmt"{mode.difficulty}-{name}".toLowerAscii()
-    if modeStr.toLowerAscii() == modeFormat:
-      html.add option(fmt"{mode.name} ({mode.difficulty})", value=modeFormat, selected="true")
-    else:
-      html.add option(fmt"{mode.name} ({mode.difficulty})", value=modeFormat)
-
-  if modeStr == "":
-    html.add option("Any", value="", selected="true")
-  else:
-    html.add option("Any", value="")
-  html & "</select>"
-
-proc displayCountSelect(count: int, max: int): string =
-  var html = "<label for='count'>Tower count</count><select name='count'>"
-  for i in 1..max:
-    let number = fmt"{i}"
-    if i == count:
-      html.add option(number, value=number, selected="true")
-    else:
-      html.add option(number, value=number)
-
-  html & "</select>"
-
-proc displayTowerSelect(towers: openArray[Tower]): string =
-  var html = "<select name='tower' multiple>"
-  for tower in TOWERS:
-    let value = tower.name
-    if tower in towers or len(towers) == 0:
-      html.add option(value, value=value, selected="true")
-    else:
-      html.add option(value, value=value)
-
-  html & "</select>"
-
-proc displayTowerTypeSelect(ttypes: openArray[TowerType]): string =
-  var html = "<select name='ttype' multiple>"
-  for ev in TowerType.toSeq:
-    let value = fmt"{ev}"
-    if ev in ttypes:
-      html.add option(value, value=value, selected="true")
-    else:
-      html.add option(value, value=value)
-
-  html & "</select>"
-
-proc displayHeroSelect(selected: openArray[Hero]): string =
-  var html = "<select name='hero' multiple>"
-  var heroes = Hero.toSeq
-  sort(heroes, proc(h1: Hero, h2: Hero): int = system.cmp(h1.symbolName, h2.symbolName))
-
-  for ev in heroes:
-    let value = fmt"{ev}".replace("_", " ")
-    if ev in selected or len(selected) == 0:
-      html.add option(value, value=value, selected="true")
-    else:
-      html.add option(value, value=value)
-
-  html & "</select>"
-
-proc displayForm(count: int, max: int, difficulty: string, mode: string, ttypes: openArray[TowerType],
-                 towers: openArray[Tower], heroes: openArray[Hero]): string =
-  form(
-    displayMapDifficultySelect(difficulty),
-    displayModeSelect(mode),
-    displayCountSelect(count, max),
-    displayTowerTypeSelect(ttypes),
-    displayTowerSelect(towers),
-    displayHeroSelect(heroes),
-    button("Filter", `type`="submit")
-  )
 
 proc filterMap[N, V](list: openArray[V], filterProc: proc(v: V): bool, mapProc: proc(v: V): N): seq[N] =
   let filtered = filter(list, filterProc)
@@ -199,17 +93,6 @@ proc filterNone[V](list: openArray[Option[V]]): seq[V] =
     proc(t: Option[V]): bool = t.isSome(),
     proc(t: Option[V]): V = t.get()
   )
-
-proc css(selectors: openArray[string], properties: openArray[(string, string)]): string =
-  var css = selectors.join(",") & " {\n"
-
-  for property in properties:
-    css.add fmt"  {property[0]}: {property[1]};" & "\n"
-
-  css & "}\n"
-
-proc homepageLink(request: Request): string =
-  `div`(a("Return", href=fmt"/?{request.query()}"))
 
 proc getParamListMapped[IV, V](request: Request, key: string, default: seq[string], map_fn: proc(s: string): IV {.gcsafe.}): seq[V] =
   let intermediate = sequtils.map(
@@ -246,35 +129,6 @@ proc filterMapForTerrain(mapDifficulty: MapDifficulty, towerSelection: openArray
     count += 1
 
   rmap
-
-proc buildHtml(sortedTowers: openArray[Tower], hero: Hero, rmap: Map, mode: Mode, count: int, max:int, difficultyParam: string, modeParam: string, ttypes: openArray[TowerType], towerSelection: openArray[Tower], heroSelection: openArray[Hero]): string =
-  "<!DOCTYPE html>" & html(
-    head(
-      meta(charset="utf-8"),
-      title(fmt"btd6 team"),
-      # while this isn't a valid PNG file (we literally don't have any content) browsers simply display their
-      # default favicon which is usually some kind of representation of the globe
-      link(rel="icon", `type`="image/png", href="data:image/png;base64,"),
-      style(
-        css(["html"], [("background-color", "#222"), ("color", "#ddd")]),
-        css(["#map-title", "#hero-title"], [("margin-top", "10px")]),
-        css(["ul"], [("list-style", "none"), ("padding", "0"), ("margin-left", "10px"), ("margin-top", "0")]),
-        css(["form"], [("margin-top", "10px")]),
-        css(["select", "button"], [("display", "block"), ("margin-bottom", "5px")]),
-        css(["#map-name", "#hero-name", "#map-mode"], [("margin-left", "10px")]),
-      )
-    ),
-    body(
-      `div`("Towers"),
-      displayTowers(sortedTowers),
-      `div`("Hero", id="hero-title"),
-      displayHero(hero),
-      `div`("Map", id="map-title"),
-      displayMap(rmap, mode),
-      hr(),
-      displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection),
-    )
-  )
 
 router btd6teams:
   # this is fine, don't worry about it
