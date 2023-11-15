@@ -46,10 +46,10 @@ const MODES*: array[0..MODE_COUNT - 1, Mode] = [
   Mode(name: "Chimps", difficulty: ModeDifficulty.HARD),
 ]
 
-proc isTypeOnlyMode*(mode: Mode): bool =
+proc isTowerTypeOnlyMode*(mode: Mode): bool =
   mode.name.endsWith(" only")
 
-proc getOnlyType*(mode: Mode): TowerType =
+proc getOnlyTowerType*(mode: Mode): TowerType =
   var ttype = TowerType.PRIMARY
   if mode.name == "Military only":
     ttype = TowerType.MILITARY

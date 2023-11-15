@@ -51,7 +51,7 @@ proc towerFromName(name: string): Option[Tower] =
 
   none(Tower)
 
-proc filterTowersForOnlyType(ttype: TowerType, towers: openArray[Tower]): seq[Tower] =
+proc filterTowersByType(towers: openArray[Tower], ttype: TowerType): seq[Tower] =
   sequtils.filter(towers, proc(tower: Tower): bool = tower.ttype == ttype)
 
 proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
@@ -139,9 +139,9 @@ router btd6teams:
 
     var towers: seq[Tower] = @TOWERS
 
-    if isTypeOnlyMode(mode):
-      let ttype = getOnlyType(mode)
-      towers = filterTowersForOnlyType(ttype, towers)
+    if isTowerTypeOnlyMode(mode):
+      let ttype = getOnlyTowerType(mode)
+      towers = filterTowersByType(towers, ttype)
       if len(ttypes) > 0 and ttype notin ttypes:
         let ttypevalue = sequtils.map(ttypes, proc(t: TowerType): string = fmt"{t}").join(", ")
         let message = fmt"mode ({mode.name}) is incompatible with tower type ({ttypevalue}) selection"
