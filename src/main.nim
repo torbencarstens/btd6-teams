@@ -1,4 +1,5 @@
 import definitions
+import functools
 import jester
 import models
 import std/[algorithm, enumutils, envvars, httpclient, options, random, segfaults, strformat, strutils, times]
@@ -51,7 +52,7 @@ proc towerFromName(name: string): Option[Tower] =
   none(Tower)
 
 proc filterTowersForOnlyType(ttype: TowerType, towers: openArray[Tower]): seq[Tower] =
-  filter(towers, proc(tower: Tower): bool = tower.ttype == ttype)
+  sequtils.filter(towers, proc(tower: Tower): bool = tower.ttype == ttype)
 
 proc compareTowerTypes(t1: TowerType, t2: TowerType): int =
   # `symbolRank` is defined in `std/enumutils`: "Returns the index in which a is listed in T."
@@ -61,45 +62,35 @@ proc compareTowers(t1: Tower, t2: Tower): int =
   compareTowerTypes(t1.ttype, t2.ttype)
 
 proc getRandomTowers(count: int, towers: seq[Tower], map: Map): seq[Tower] =
-  var samples = filter(towers, proc(tower: Tower): bool = tower.placement_terrain in map.available_terrains)
+  var samples = sequtils.filter(towers, proc(tower: Tower): bool = tower.placement_terrain in map.available_terrains)
 
-  shuffle(samples)
+  random.shuffle(samples)
 
   samples[0..count - 1]
 
 proc randomMap(difficulty: MapDifficulty): Map =
   if difficulty != MapDifficulty.ANY:
-    let maps = filter(MAPS, proc(d: Map): bool = d.difficulty == difficulty)
-    sample(maps)
+    let maps = sequtils.filter(MAPS, proc(d: Map): bool = d.difficulty == difficulty)
+    random.sample(maps)
   else:
-    sample(MAPS)
+    random.sample(MAPS)
 
 proc filterTowersForMapTerrain(towers: openArray[Tower], map: Map): seq[Tower] =
-  filter(towers, proc(tower: Tower): bool = canPlace(tower, map))
+  sequtils.filter(towers, proc(tower: Tower): bool = canPlace(tower, map))
 
 proc randomHero(allowed: seq[Hero]): Hero =
   var heroes = Hero.toSeq
   if len(allowed) > 0:
-    heroes = filter(heroes, proc(h: Hero): bool = h in allowed)
+    heroes = sequtils.filter(heroes, proc(h: Hero): bool = h in allowed)
+
   random.sample(heroes)
-
-proc filterMap[N, V](list: openArray[V], filterProc: proc(v: V): bool, mapProc: proc(v: V): N): seq[N] =
-  let filtered = filter(list, filterProc)
-  sequtils.map(filtered, mapProc)
-
-proc filterNone[V](list: openArray[Option[V]]): seq[V] =
-  filterMap(
-    list,
-    proc(t: Option[V]): bool = t.isSome(),
-    proc(t: Option[V]): V = t.get()
-  )
 
 proc getParamListMapped[IV, V](request: Request, key: string, default: seq[string], map_fn: proc(s: string): IV {.gcsafe.}): seq[V] =
   let intermediate = sequtils.map(
       paramValuesAsSeq(request).getOrDefault(key, default),
       map_fn
     )
-  filterNone(intermediate)
+  functools.filterNone(intermediate)
 
 proc getParamMapped[V](request: Request, key: string, default: string, map_fn: proc(s: string): V {.gcsafe.}): V =
   map_fn(params(request).getOrDefault(key, default))
@@ -120,6 +111,7 @@ proc filterMapForTerrain(mapDifficulty: MapDifficulty, towerSelection: openArray
   var ftowers: seq[Tower] = @[]
   var count = 0
 
+  # 100 is completely arbitrary
   while rmap.isNone and count < 100:
     var m = randomMap(mapDifficulty)
     ftowers = filterTowersForMapTerrain(towerSelection, m)
@@ -156,7 +148,7 @@ router btd6teams:
         resp Http400, [("Content-Type", "text/plain")], message
 
     if towerSelection.len() > 0:
-      towers = filter(towerSelection, proc(t: Tower): bool = t in towers)
+      towers = sequtils.filter(towerSelection, proc(t: Tower): bool = t in towers)
 
     let rmapOpt = filterMapForTerrain(mapDifficulty, towers, count)
     if rmapOpt.isNone:
