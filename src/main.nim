@@ -6,8 +6,6 @@ import std/[algorithm, enumutils, envvars, httpclient, options, random, segfault
 from std/sequtils import filter, map, toSeq
 import view
 
-randomize(now().second)
-
 proc canPlace(tower: Tower, map: Map): bool =
   tower.placement_terrain in map.available_terrains
 
@@ -181,4 +179,5 @@ proc main() =
   jester.serve()
 
 when isMainModule:
+  randomize(now().second)
   main()
