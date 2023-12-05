@@ -46,6 +46,7 @@ type
     Sauda
     Psi
     Geraldo
+    Corvus
 
 type
   ModeDifficulty* = enum
