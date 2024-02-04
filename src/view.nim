@@ -180,7 +180,7 @@ proc displayMoneyTable(): string =
     th("gold (total)"),
   ))
   for i in countTo(GOLD_PER_ROUND_COUNT - 1):
-    content.add displayGoldRow(i + 1, GOLD_PER_ROUND[i], estimateGold(i + 1).get())
+    content.add displayGoldRow(i + 1, goldForRound(i + 1).get(), estimateGold(i + 1).get())
 
   content
 

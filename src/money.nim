@@ -1,5 +1,6 @@
 import std/options
 
+const DEFAULT_START_MONEY = 650
 
 # https://bloons.fandom.com/wiki/Rounds_(BTD6)#List_of_rounds
 # see `estimate_gold.nim`
@@ -8,10 +9,19 @@ const GOLD_PER_ROUND_COUNT* = 140
 const GOLD_PER_ROUND*: array[0..GOLD_PER_ROUND_COUNT - 1, int] = [771, 908, 1046, 1221, 1385, 1548, 1730, 1930, 2129, 2443, 2632, 2824, 3106, 3365, 3631, 3899, 4064, 4422, 4682, 4868, 5219, 5517, 5794, 5961, 6296, 6629, 7291, 7557, 7946, 8283, 8820, 9447, 9652, 10564, 11714, 12610, 13949, 15226, 16985, 17506, 19687, 20346, 21624, 22918, 25340, 26056, 27693, 30536, 35294, 38310, 39333, 40852, 41700, 43821, 46226, 47435, 49215, 51434, 53514, 54356, 55459, 56716, 59412, 60130, 63070, 63941, 64831, 65475, 66730, 69213, 70579, 71946, 73200, 76105, 78632, 79807, 82206, 86926, 93491, 94748, 99969, 104580, 109183, 116080, 118557, 119338, 121797, 124942, 126943, 127111, 131130, 135495, 137268, 144760, 148303, 158082, 159322, 168798, 171446, 172801, 173374, 175633, 181611, 189009, 193215, 194997, 198666, 204472, 211922, 214410, 223877, 225756, 228738, 234143, 239548, 243492, 244447, 248690, 250703, 255747, 257124, 258990, 261494, 263786, 266284, 267043, 268145, 269742, 271758, 273317, 275518, 278475, 281919, 283144, 285017, 286485, 289784, 290749, 292681, 293220]
 
 proc estimateGold*(round: int): Option[int] =
-  if round == 0:
-    return some 0
-
   try:
-    some GOLD_PER_ROUND[round - 1] + estimateGold(round - 1).get()
+    some GOLD_PER_ROUND[round - 1]
   except:
     return none(int)
+
+proc goldForRound*(round: int): Option[int] =
+  if round == 1:
+    return some GOLD_PER_ROUND[0] - DEFAULT_START_MONEY
+
+  var goldRound = estimateGold(round)
+  var goldLastRound = estimateGold(round - 1)
+
+  if goldRound.isNone() or goldLastRound.isNone():
+    none(int)
+  else:
+    some goldRound.get() - goldLastRound.get()
