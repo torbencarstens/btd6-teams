@@ -1,6 +1,6 @@
 import definitions
 import models
-import jester
+import jesterfork
 import std/[algorithm, enumutils, htmlgen, strformat, strutils]
 from std/sequtils import toSeq
 
