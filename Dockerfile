@@ -15,7 +15,7 @@ RUN nimble refresh && nimble install
 
 COPY src/*.nim .
 
-RUN nimble c --mm:refc -d:release --checks:off --opt:speed --assertions:off main.nim
+RUN nimble c -d:release --checks:off --opt:speed --assertions:off main.nim
 
 USER nim
 

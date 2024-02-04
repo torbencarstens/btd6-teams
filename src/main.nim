@@ -2,7 +2,7 @@ import definitions
 import functools
 import jesterfork
 import models
-import std/[algorithm, enumutils, envvars, httpclient, options, random, segfaults, strformat, strutils, times]
+import std/[algorithm, enumutils, envvars, httpclient, options, random, strformat, strutils, times]
 from std/sequtils import filter, map, toSeq
 import view
 
