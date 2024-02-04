@@ -10,3 +10,9 @@ proc filterNone*[V](list: openArray[Option[V]]): seq[V] =
     proc(t: Option[V]): bool = t.isSome(),
     proc(t: Option[V]): V = t.get()
   )
+
+iterator countTo*(n: int): int =
+  var i = 0
+  while i <= n:
+    yield i
+    inc i

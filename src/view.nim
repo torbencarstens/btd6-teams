@@ -1,5 +1,7 @@
 import definitions
+import functools
 import models
+import money
 import jesterfork
 import std/[algorithm, enumutils, htmlgen, strformat, strutils]
 from std/sequtils import toSeq
@@ -122,7 +124,17 @@ proc css(selectors: openArray[string], properties: openArray[(string, string)]):
 proc homepageLink*(request: Request): string =
   `div`(a("Return", href=fmt"/?{request.query()}"))
 
-proc buildHtml*(sortedTowers: openArray[Tower], hero: Hero, rmap: Map, mode: Mode, count: int, max:int, difficultyParam: string, modeParam: string, ttypes: openArray[TowerType], towerSelection: openArray[Tower], heroSelection: openArray[Hero]): string =
+proc baseCss*(): string =
+  strutils.join([
+    css(["html"], [("background-color", "#222"), ("color", "#ddd")]),
+    css(["#map-title", "#hero-title"], [("margin-top", "10px")]),
+    css(["ul"], [("list-style", "none"), ("padding", "0"), ("margin-left", "10px"), ("margin-top", "0")]),
+    css(["form"], [("margin-top", "10px")]),
+    css(["select", "button"], [("display", "block"), ("margin-bottom", "5px")]),
+    css(["#map-name", "#hero-name", "#map-mode"], [("margin-left", "10px")])
+  ], "\n")
+
+proc buildHtml*(bod: string, customCss: string = ""): string =
   "<!DOCTYPE html>" & html(
     head(
       meta(charset="utf-8"),
@@ -131,22 +143,47 @@ proc buildHtml*(sortedTowers: openArray[Tower], hero: Hero, rmap: Map, mode: Mod
       # default favicon which is usually some kind of representation of the globe
       link(rel="icon", `type`="image/png", href="data:image/png;base64,"),
       style(
-        css(["html"], [("background-color", "#222"), ("color", "#ddd")]),
-        css(["#map-title", "#hero-title"], [("margin-top", "10px")]),
-        css(["ul"], [("list-style", "none"), ("padding", "0"), ("margin-left", "10px"), ("margin-top", "0")]),
-        css(["form"], [("margin-top", "10px")]),
-        css(["select", "button"], [("display", "block"), ("margin-bottom", "5px")]),
-        css(["#map-name", "#hero-name", "#map-mode"], [("margin-left", "10px")]),
+        baseCss(),
+        customCss,
       )
     ),
     body(
-      `div`("Towers"),
-      displayTowers(sortedTowers),
-      `div`("Hero", id="hero-title"),
-      displayHero(hero),
-      `div`("Map", id="map-title"),
-      displayMap(rmap, mode),
-      hr(),
-      displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection),
+      bod
     )
   )
+
+proc buildFrontpage*(sortedTowers: openArray[Tower], hero: Hero, rmap: Map, mode: Mode, count: int, max:int, difficultyParam: string, modeParam: string, ttypes: openArray[TowerType], towerSelection: openArray[Tower], heroSelection: openArray[Hero]): string =
+  buildHtml(strutils.join([
+    `div`("Towers"),
+    displayTowers(sortedTowers),
+    `div`("Hero", id="hero-title"),
+    displayHero(hero),
+    `div`("Map", id="map-title"),
+    displayMap(rmap, mode),
+    hr(),
+    displayForm(count, max, difficultyParam, modeParam, ttypes, towerSelection, heroSelection),
+  ], "\n"))
+
+proc displayGoldRow(round: int, gold: int, total: int): string =
+  tr(
+    td(strutils.intToStr(round)),
+    td(strutils.intToStr(gold)),
+    td(strutils.intToStr(total)),
+  )
+
+proc displayMoneyTable(): string =
+  var content = "<table>"
+
+  content.add(tr(
+    th("round"),
+    th("gold (round)"),
+    th("gold (total)"),
+  ))
+  for i in countTo(GOLD_PER_ROUND_COUNT - 1):
+    content.add displayGoldRow(i + 1, GOLD_PER_ROUND[i], estimateGold(i + 1).get())
+
+  content
+
+proc buildMoney*(): string =
+  var moneyCss = css(@["table"], [("border-spacing", "12px")]) & css(@["th", "td"], [(" border-bottom", "2px solid black")])
+  buildHtml(displayMoneyTable(), moneyCss)
