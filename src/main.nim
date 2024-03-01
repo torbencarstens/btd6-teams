@@ -104,6 +104,22 @@ proc getAllFormParams(request: Request): (int, string, string, seq[TowerType], s
 
   (count, difficultyParam, modeParam, ttypes, towerSelection, heroSelection)
 
+proc parseIntOpt(s: string): Option[int] =
+  try:
+    return some(parseInt(s))
+  except ValueError:
+    return none(int)
+
+proc getMoneyParams(request: Request): Option[(int, int)] =
+  let fro: Option[int] = getParamMapped(request, "from", "", parseIntOpt)
+  let to: Option[int] = getParamMapped(request, "to", "", parseIntOpt)
+
+  if fro.isNone or to.isNone:
+    return none((int, int))
+
+  return some((fro.get(), to.get()))
+
+
 proc filterMapForTerrain(mapDifficulty: MapDifficulty, towerSelection: openArray[Tower], count: int): Option[Map] =
   var rmap = none(Map)
   var ftowers: seq[Tower] = @[]
@@ -172,7 +188,11 @@ router btd6teams:
 
     resp content
   get "/money":
+    let params = getMoneyParams(request)
+    if params.isNone:
       resp buildMoney()
+    else:
+      resp buildMoneyParams(params.get())
 
 proc main() =
   let port = Port(parseInt(getEnv("PORT", "8080")))

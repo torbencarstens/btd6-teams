@@ -187,3 +187,12 @@ proc displayMoneyTable(): string =
 proc buildMoney*(): string =
   var moneyCss = css(@["table"], [("border-spacing", "12px")]) & css(@["th", "td"], [(" border-bottom", "2px solid black")])
   buildHtml(displayMoneyTable(), moneyCss)
+
+proc buildMoneyParams*(params: (int, int)): string =
+  let froGold = estimateGold(params[1])
+  let toGold = estimateGold(params[0])
+
+  if froGold.isNone or toGold.isNone:
+    buildHtml("couldn't estimate gold for these rounds")
+  else:
+    buildHtml(strutils.intToStr(froGold.get() - toGold.get()))
